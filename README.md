@@ -15,4 +15,4 @@ Remaining Problem:
 | Messages from LSD to Server1 (in String)  | "heartBeat"  |
 | Messages from Server1 to LSD (in String)  | "heartbeat message received"  |
 | Message from Client1 to Server1 (in String)  | "<clientId, replicaId, requestNum, request, newStateValue>" (In 'messageTuple' Object <int, int, int, String, String> )  |
-| Message from Server1 to Client1 (in String)  | "<clientId, replicaId, requestNum, reply, newStateValue>"  |
+| Message from Server1 to Client1 (in String)  | "<clientId, replicaId, requestNum, reply, newStateValue>" (In 'messageTuple' Object <int, int, int, String, String> )  |
