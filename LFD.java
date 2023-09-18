@@ -11,11 +11,12 @@ import java.util.TimerTask;
 import util.utilFunc;
 
 public class LFD {
- 
+    
+    static boolean stopTimer = false;
+
     public static void main(String[] args) throws IOException, ClassNotFoundException{
       
         int heartBeatFreq = 1;
-
         int port = 9876;
         Timer timer;
         InetAddress host = InetAddress.getLocalHost();
@@ -23,7 +24,6 @@ public class LFD {
         ObjectOutputStream outputStream = null;
         ObjectInputStream inputStream = null;
   
-      
         Scanner scanner = new Scanner(System.in);
         System.out.print("Please input the heartBeatFreq:");
         String timeInterval = scanner.nextLine();
@@ -39,24 +39,25 @@ public class LFD {
 
                 try {
                     sendHeartBeatMessage(heartBeatCount);
+                    //Increment heartBeatCount by 1
                     heartBeatCount++;
-                } catch (ClassNotFoundException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+
+                } catch (ClassNotFoundException | IOException e) {
+
+                    System.out.println("HeartBeat message failed... / Server is currently unreachable...");
+                    //Terminate the heartbeat service
+                    timer.cancel();
                 }
-
             }
-
         }, 0, timeIntervalInt);
+
+
     }
 
 
     public static void sendHeartBeatMessage(int heartBeatCount) throws IOException, ClassNotFoundException{
 
-        try{
+
             Socket socket = new Socket(InetAddress.getLocalHost().getHostName(), 9876);
             ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
 
@@ -71,13 +72,5 @@ public class LFD {
             if(inputMessage.equals("heartbeat message received")){
                 System.out.println("[" + utilFunc.getTime() + "] " + heartBeatCount + " LFD1 receives heartbeat from S1");
             }
-        }catch(IOException | ClassNotFoundException e){
-            e.printStackTrace();
-            System.out.println("Server is currently unreachable...");
         }
-
-        //Increment heartBeatCount by 1
-        heartBeatCount++;
     }
-
-}
