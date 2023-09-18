@@ -13,7 +13,6 @@ import java.time.Instant;
 import util.utilFunc;
 
 public class client{
-
     
     public static void main(String[] args) throws IOException, ClassNotFoundException{
 
@@ -42,19 +41,14 @@ public class client{
             outputStream.writeObject(sendTuple.toString());
 
             System.out.println("[" + utilFunc.getTime() + "] Sent "+ sendTuple.toPrintString());
-        
             inputStream = new ObjectInputStream(socket.getInputStream());
             String inputMessage = (String)inputStream.readObject();
-
             messageTuple serverMessageTuple = messageTuple.fromString(inputMessage);
 
             System.out.println("[" + utilFunc.getTime() + "] Received " + serverMessageTuple.toPrintString());
             requestNum++;
         }
 
-        // outputStream.close();
-        // inputStream.close();
-        // scanner.close();
     }
 }
 
