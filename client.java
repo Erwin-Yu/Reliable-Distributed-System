@@ -23,9 +23,11 @@ public class client{
         InetAddress host = InetAddress.getLocalHost();
         Socket socket = null;
         ObjectOutputStream outputStream = null;
-
         ObjectInputStream inputStream = null;
         Scanner scanner = new Scanner(System.in);
+        System.out.print("Please Input a client Id:");
+        String clientIdInStr = scanner.nextLine();
+        clientId = Integer.parseInt(clientIdInStr);
 
         while(true){
 
