@@ -4,10 +4,12 @@ CMU 18-794 project
 
 Remaining Problem:
 
-
-1. Clients may be blocked by another Clients in sending Messages to Server. ( ex. in a order by which the clients is established).
-2.
-
+  <td>
+    <code class="highlighter-rouge">
+1. Clients may be blocked by another Clients in sending Messages to the Server. ( ex. in a order by which the clients is established).
+2. The "my_state" variable of server could be set to be any String from any client's terminal input.
+    </code>
+  </td>
 
 Messages from LSD to Server1 (in String): "heartBeat"
 Messages from Server1 to LSD (in String): "heartbeat message received"
