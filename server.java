@@ -69,6 +69,7 @@ class ClientHandler implements Runnable {
     @Override
     public void run() {
         String clientMessage;
+        int num = 2;
         try {
             clientMessage = (String) inputStream.readObject();
         } catch (ClassNotFoundException e) {
@@ -80,9 +81,10 @@ class ClientHandler implements Runnable {
         }
         if (clientMessage.equals("heartBeat")){
                 try {
-                    System.out.println("[" + utilFunc.getTime() + "] " + this.server.getheartBeat() + " Server receives heartbeat from LFD");
+                    // System.out.printf(); 
+                    System.out.println("[" + utilFunc.getTime() + "] " + this.server.getheartBeat() + " Server " + (num + 1) + "receives heartbeat from LFD" + (num + 1));
                     outputStream.writeObject("heartbeat message received");
-                    System.out.println("[" + utilFunc.getTime() + "] " + this.server.getheartBeat() + " Server sents heartbeat to LFD");
+                    System.out.println("[" + utilFunc.getTime() + "] " + this.server.getheartBeat() + " Server " + (num + 1) + " sents heartbeat to LFD" + (num + 1));
                     this.server.addheartBeat();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -93,9 +95,9 @@ class ClientHandler implements Runnable {
                 System.out.println(utilFunc.getTime() + " Received " + clientMessageTuple.toPrintString());
             
                 //Print my_state beore and after the procession of the message
-                System.out.println(utilFunc.getTime() + " my_state_S1 =" + this.server.getState() + " before processing " + clientMessageTuple.toPrintString());
+                System.out.println(utilFunc.getTime() + " my_state_S" + (num + 1) + " =" + this.server.getState() + " before processing " + clientMessageTuple.toPrintString());
                 this.server.changeState(clientMessageTuple.getNewStateValue());
-                System.out.println(utilFunc.getTime() + " my_state_S1 =" + this.server.getState() + " after processing " + clientMessageTuple.toPrintString());
+                System.out.println(utilFunc.getTime() + " my_state_S" + (num + 1) + " =" + this.server.getState() + " after processing " + clientMessageTuple.toPrintString());
 
                 messageTuple replyMessageTuple = clientMessageTuple;
                 replyMessageTuple.setMessageDirection("reply");

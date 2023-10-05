@@ -9,7 +9,8 @@ import java.net.ConnectException;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
-
+import java.util.Timer;
+import java.util.TimerTask;
 import data.messageTuple;
 
 import java.time.Instant;
@@ -18,6 +19,8 @@ import util.utilFunc;
 
 public class client{
     
+    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
     public static void main(String[] args) throws IOException, ClassNotFoundException{
 
         int requestNum = 101;

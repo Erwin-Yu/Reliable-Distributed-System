@@ -4,18 +4,19 @@ import java.io.ObjectOutputStream;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.Scanner;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 import util.utilFunc;
+
+
 
 public class LFD {
     
     static boolean stopTimer = false;
-
-    public static void main(String[] args) throws IOException, ClassNotFoundException{
+    Integer[] ports = {9876, 9877, 9878};
+    int globalIndex = 0; 
       
+    public static void main(String[] args) throws IOException, ClassNotFoundException{
         int heartBeatFreq = 1;
         int port = 9876;
         Timer timer;
@@ -23,7 +24,7 @@ public class LFD {
         Socket socket = null;
         ObjectOutputStream outputStream = null;
         ObjectInputStream inputStream = null;
-  
+        
         Scanner scanner = new Scanner(System.in);
         System.out.print("Please input the heartBeatFreq:");
         String timeInterval = scanner.nextLine();
@@ -46,7 +47,7 @@ public class LFD {
 
                     System.out.println("HeartBeat message failed... / Server is currently unreachable...");
                     //Terminate the heartbeat service
-                    timer.cancel();
+                    // timer.cancel();
                 }
             }
         }, 0, timeIntervalInt);
@@ -57,20 +58,22 @@ public class LFD {
 
     public static void sendHeartBeatMessage(int heartBeatCount) throws IOException, ClassNotFoundException{
 
-
-            Socket socket = new Socket(InetAddress.getLocalHost().getHostName(), 9876);
+            int port = 9876;
+            int num = 2; 
+            System.out.println("this is the server has port: " + (num + port));
+            Socket socket = new Socket(InetAddress.getLocalHost().getHostName(), port + num);
             ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
 
             outputStream.writeObject("heartBeat");
 
-            System.out.println("[" + utilFunc.getTime() + "] " + heartBeatCount + " LFD1 sending heartbeat to S1");
+            System.out.println("[" + utilFunc.getTime() + "] " + heartBeatCount + " LFD " + (num + 1) + " sending heartbeat to S" + (num + 1));
         
             ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
             String inputMessage = (String)inputStream.readObject();
 
             //Verify if the server successfully receives the heartbeat message
             if(inputMessage.equals("heartbeat message received")){
-                System.out.println("[" + utilFunc.getTime() + "] " + heartBeatCount + " LFD1 receives heartbeat from S1");
+                System.out.println("[" + utilFunc.getTime() + "] " + heartBeatCount + " LFD " + (num + 1) + " receives heartbeat from S" + (num + 1));
             }
         }
     }
