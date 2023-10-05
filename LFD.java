@@ -44,20 +44,16 @@ public class LFD {
 
                 } catch (ClassNotFoundException | IOException e) {
 
-                    System.out.println("HeartBeat message failed... / Server is currently unreachable...");
-                    //Terminate the heartbeat service
-                    timer.cancel();
+                    // System.out.println("HeartBeat message failed... / Server is currently unreachable...");
+                    // //Terminate the heartbeat service
+                    // timer.cancel();
                 }
             }
         }, 0, timeIntervalInt);
-
-
     }
 
 
     public static void sendHeartBeatMessage(int heartBeatCount) throws IOException, ClassNotFoundException{
-
-
             Socket socket = new Socket(InetAddress.getLocalHost().getHostName(), 9876);
             ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
 
