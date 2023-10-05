@@ -17,6 +17,9 @@ public class messageTuple{
         this.newStateValue = newStateValue;
     }
 
+    public int getRequestNum(){
+        return this.requestNum; 
+    }
 
     public String getNewStateValue(){
         return this.newStateValue;

@@ -1,6 +1,7 @@
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.EOFException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -37,7 +38,8 @@ public class server {
     }
 
     public static void main(String[] args) throws IOException, ClassNotFoundException{
-        int port = 9876;
+        int port = 9878;
+        System.out.println("this is the server has port: " + port);
         newServer = new ServerSocket(port);
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         server s = new server(newServer, "initial state");
