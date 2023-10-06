@@ -13,12 +13,11 @@ import util.utilFunc;
 public class LFD {
     
     static boolean stopTimer = false;
-    Integer[] ports = {9876, 9877, 9878};
-    int globalIndex = 0; 
-      
+    public static int num = 2; 
+    private static int portGDF = 9886;
+    private static int port = 9876; 
     public static void main(String[] args) throws IOException, ClassNotFoundException{
         int heartBeatFreq = 1;
-        int port = 9876;
         Timer timer;
         InetAddress host = InetAddress.getLocalHost();
         Socket socket = null;
@@ -35,16 +34,31 @@ public class LFD {
         timer.scheduleAtFixedRate(new TimerTask(){
 
             int heartBeatCount = 0;
+            int heartBeatCountGFD = 0;
+            boolean serverReachable = false;
+
             @Override
             public void run(){
 
                 try {
                     sendHeartBeatMessage(heartBeatCount);
-                    //Increment heartBeatCount by 1
+                    if (!serverReachable) {
+                        serverReachable = true;
+                        try {
+                            sendHeartBeatToGFD(serverReachable);
+                        }
+                        catch (ClassNotFoundException | IOException e) {}
+                    }
                     heartBeatCount++;
 
                 } catch (ClassNotFoundException | IOException e) {
-
+                    if (serverReachable) {
+                        serverReachable = false;
+                        try {
+                            sendHeartBeatToGFD(serverReachable);
+                        }
+                        catch (ClassNotFoundException | IOException ee) {}
+                    }
                     System.out.println("HeartBeat message failed... / Server is currently unreachable...");
                     //Terminate the heartbeat service
                     // timer.cancel();
@@ -58,22 +72,47 @@ public class LFD {
 
     public static void sendHeartBeatMessage(int heartBeatCount) throws IOException, ClassNotFoundException{
 
-            int port = 9876;
-            int num = 2; 
-            System.out.println("this is the server has port: " + (num + port));
-            Socket socket = new Socket(InetAddress.getLocalHost().getHostName(), port + num);
+            System.out.println("this is the server has port: " + (LFD.num + LFD.port));
+            Socket socket = new Socket(InetAddress.getLocalHost().getHostName(), LFD.port + LFD.num);
             ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
 
             outputStream.writeObject("heartBeat");
 
-            System.out.println("[" + utilFunc.getTime() + "] " + heartBeatCount + " LFD " + (num + 1) + " sending heartbeat to S" + (num + 1));
+            System.out.println("[" + utilFunc.getTime() + "] " + heartBeatCount + " LFD " + (LFD.num + 1) + " sending heartbeat to S" + (LFD.num + 1));
         
             ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
             String inputMessage = (String)inputStream.readObject();
 
             //Verify if the server successfully receives the heartbeat message
             if(inputMessage.equals("heartbeat message received")){
-                System.out.println("[" + utilFunc.getTime() + "] " + heartBeatCount + " LFD " + (num + 1) + " receives heartbeat from S" + (num + 1));
+                System.out.println("[" + utilFunc.getTime() + "] " + heartBeatCount + " LFD " + (LFD.num + 1) + " receives heartbeat from S" + (LFD.num + 1));
+            }
+        }
+
+
+
+        public static void sendHeartBeatToGFD(boolean serverReachable) throws IOException, ClassNotFoundException{
+            Socket socket = new Socket(InetAddress.getLocalHost().getHostName(), portGDF);
+            ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
+    
+            if (serverReachable) {
+                String msg = String.format("LFD%d: add replica S%d", LFD.num + 1, LFD.num + 1);
+                outputStream.writeObject(msg);
+                System.out.println("[" + utilFunc.getTime() + "] " + msg);
+            }
+            else {
+                String msg = String.format("LFD%d: delete replica S%d", LFD.num + 1, LFD.num + 1);
+                //String msg = "LFD1: delete replica S1";
+                outputStream.writeObject(msg);
+                System.out.println("[" + utilFunc.getTime() + "] " + msg);
+            }
+        
+            ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
+            String inputMessage = (String)inputStream.readObject();
+    
+            //Verify if the server successfully receives the heartbeat message
+            if(inputMessage.equals("heartbeat message received")){
+                System.out.println("[" + utilFunc.getTime() + "] " + " LFD" + (LFD.num + 1) + "'s heartbeat received by GFD");
             }
         }
     }

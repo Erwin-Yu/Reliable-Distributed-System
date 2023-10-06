@@ -73,7 +73,7 @@ public class client{
                     serverMessageTuples[i] = messageTuple.fromString(inputMessages[i]);
                     System.out.println("[" + utilFunc.getTime() + "] Received from server " + (i + 1) + " " + serverMessageTuples[i].toPrintString());
                     if (!reqnum.add(serverMessageTuples[i].getRequestNum())){
-                        System.out.println("request_num " + serverMessageTuples[i].getRequestNum() + " : Discarded duplicate reply from " + "Server " + (i + i));
+                        System.out.println("request_num " + serverMessageTuples[i].getRequestNum() + " : Discarded duplicate reply from " + "Server " + (i + 1));
                     }
                 } catch (Exception e){
                     continue; 

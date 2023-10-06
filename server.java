@@ -20,6 +20,7 @@ public class server {
     private static ServerSocket newServer;
     private static String my_state;
     private int heartBeatCount = 0; 
+    public static int num = 2; 
     void addheartBeat(){
         this.heartBeatCount = this.heartBeatCount + 1; 
     }
@@ -38,7 +39,7 @@ public class server {
     }
 
     public static void main(String[] args) throws IOException, ClassNotFoundException{
-        int port = 9878;
+        int port = 9876 + server.num;
         System.out.println("this is the server has port: " + port);
         newServer = new ServerSocket(port);
         ExecutorService executorService = Executors.newFixedThreadPool(10);
@@ -69,7 +70,6 @@ class ClientHandler implements Runnable {
     @Override
     public void run() {
         String clientMessage;
-        int num = 2;
         try {
             clientMessage = (String) inputStream.readObject();
         } catch (ClassNotFoundException e) {
@@ -82,9 +82,9 @@ class ClientHandler implements Runnable {
         if (clientMessage.equals("heartBeat")){
                 try {
                     // System.out.printf(); 
-                    System.out.println("[" + utilFunc.getTime() + "] " + this.server.getheartBeat() + " Server " + (num + 1) + "receives heartbeat from LFD" + (num + 1));
+                    System.out.println("[" + utilFunc.getTime() + "] " + this.server.getheartBeat() + " Server " + (server.num + 1) + "receives heartbeat from LFD" + (server.num + 1));
                     outputStream.writeObject("heartbeat message received");
-                    System.out.println("[" + utilFunc.getTime() + "] " + this.server.getheartBeat() + " Server " + (num + 1) + " sents heartbeat to LFD" + (num + 1));
+                    System.out.println("[" + utilFunc.getTime() + "] " + this.server.getheartBeat() + " Server " + (server.num + 1) + " sents heartbeat to LFD" + (server.num + 1));
                     this.server.addheartBeat();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -95,9 +95,9 @@ class ClientHandler implements Runnable {
                 System.out.println(utilFunc.getTime() + " Received " + clientMessageTuple.toPrintString());
             
                 //Print my_state beore and after the procession of the message
-                System.out.println(utilFunc.getTime() + " my_state_S" + (num + 1) + " =" + this.server.getState() + " before processing " + clientMessageTuple.toPrintString());
+                System.out.println(utilFunc.getTime() + " my_state_S" + (server.num + 1) + " =" + this.server.getState() + " before processing " + clientMessageTuple.toPrintString());
                 this.server.changeState(clientMessageTuple.getNewStateValue());
-                System.out.println(utilFunc.getTime() + " my_state_S" + (num + 1) + " =" + this.server.getState() + " after processing " + clientMessageTuple.toPrintString());
+                System.out.println(utilFunc.getTime() + " my_state_S" + (server.num + 1) + " =" + this.server.getState() + " after processing " + clientMessageTuple.toPrintString());
 
                 messageTuple replyMessageTuple = clientMessageTuple;
                 replyMessageTuple.setMessageDirection("reply");
