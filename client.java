@@ -49,10 +49,11 @@ public class client{
             }
             System.out.print("Please Input a value for Changing Server State:");
             String inputClientMessage = scanner.nextLine();
-            messageTuple sendTuple = new messageTuple(clientId, 1, requestNum, "request", inputClientMessage);
+            
 
             for (int i = 0; i < 3; i++){
                 try {
+                    messageTuple sendTuple = new messageTuple(clientId, i + 1, requestNum, "request", inputClientMessage);
                     outputStreams[i].writeObject(sendTuple.toString());
                     System.out.println("[" + utilFunc.getTime() + "] Sent to Server " + (i + 1) + " " + sendTuple.toPrintString());
                 } catch (Exception e) {
