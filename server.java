@@ -1,4 +1,3 @@
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.EOFException;
@@ -12,7 +11,6 @@ import java.net.Socket;
 import java.time.Instant;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import data.messageTuple;
 import util.utilFunc;
 
@@ -20,7 +18,8 @@ public class server {
     private static ServerSocket newServer;
     private static String my_state;
     private int heartBeatCount = 0; 
-    public static int num = 2; 
+    public static int num = 1;
+    
     void addheartBeat(){
         this.heartBeatCount = this.heartBeatCount + 1; 
     }
@@ -39,7 +38,7 @@ public class server {
     }
 
     public static void main(String[] args) throws IOException, ClassNotFoundException{
-        int port = 9876 + server.num;
+        int port = 9876;
         System.out.println("this is the server has port: " + port);
         newServer = new ServerSocket(port);
         ExecutorService executorService = Executors.newFixedThreadPool(10);
@@ -111,4 +110,3 @@ class ClientHandler implements Runnable {
         
     }
 }
-

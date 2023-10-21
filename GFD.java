@@ -17,7 +17,6 @@ public class GFD {
         // Create threads for each server socket
         Thread thread = createSocketThread(port);
         thread.start();
-    
         System.out.println("GFD: 0 members");
     }
 

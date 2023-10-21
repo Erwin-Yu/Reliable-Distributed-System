@@ -26,7 +26,9 @@ public class client{
         int requestNum = 101;
         int clientId = 0;
 
-        InetAddress host = InetAddress.getLocalHost();
+        InetAddress[] hosts = new InetAddress[]{InetAddress.getByName("172.20.10.8"),
+                                                InetAddress.getByName("172.20.10.9"),
+                                                InetAddress.getByName("172.20.10.10")}; // InetAddress.getLocalHost();
         Socket[] sockets = new Socket[3];
         ObjectOutputStream[] outputStreams = new ObjectOutputStream[3]; 
         ObjectInputStream[] inputStreams = new ObjectInputStream[3]; 
@@ -39,14 +41,17 @@ public class client{
         clientId = Integer.parseInt(clientIdInStr);
 
         while(true){
+            
             for (int i = 0; i < 3; i++){
                 try {
-                    sockets[i] = new Socket(host.getHostName(), 9876 + i);
+                    // sockets[i] = new Socket(host.getHostName(), 9876 + i);
+                    sockets[i] = new Socket(hosts[i].getHostName(), 9876);
                     outputStreams[i] = new ObjectOutputStream(sockets[i].getOutputStream());
                 } catch (Exception e){
-                    continue; 
+                    continue;
                 } 
             }
+
             System.out.print("Please Input a value for Changing Server State:");
             String inputClientMessage = scanner.nextLine();
             
@@ -83,7 +88,8 @@ public class client{
             requestNum++;
         }
 
+
+        
+
     }
 }
-
-

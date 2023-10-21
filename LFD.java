@@ -13,7 +13,7 @@ import util.utilFunc;
 public class LFD {
     
     static boolean stopTimer = false;
-    public static int num = 2; 
+    public static int num = 1; 
     private static int portGDF = 9886;
     private static int port = 9876; 
     public static void main(String[] args) throws IOException, ClassNotFoundException{
@@ -72,8 +72,8 @@ public class LFD {
 
     public static void sendHeartBeatMessage(int heartBeatCount) throws IOException, ClassNotFoundException{
 
-            System.out.println("this is the server has port: " + (LFD.num + LFD.port));
-            Socket socket = new Socket(InetAddress.getLocalHost().getHostName(), LFD.port + LFD.num);
+            //System.out.println("this is the server has port: " + (LFD.num + LFD.port));
+            Socket socket = new Socket(InetAddress.getLocalHost().getHostName(), LFD.port);
             ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
 
             outputStream.writeObject("heartBeat");
@@ -92,7 +92,7 @@ public class LFD {
 
 
         public static void sendHeartBeatToGFD(boolean serverReachable) throws IOException, ClassNotFoundException{
-            Socket socket = new Socket(InetAddress.getLocalHost().getHostName(), portGDF);
+            Socket socket = new Socket("172.20.10.3", portGDF);
             ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
     
             if (serverReachable) {
