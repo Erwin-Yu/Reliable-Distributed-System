@@ -33,7 +33,7 @@ public class GFD {
                     System.out.println(message);
                     String[] msgs = message.split(" ");
                     String msg = msgs[msgs.length - 1];
-                    System.out.println(message.split(" ")[1]);
+                    // System.out.println(message.split(" ")[1]);
                     if (message.split(" ")[1].equals("add")) {
                         synchronized (membership) {
                             memberCount++;
