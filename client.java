@@ -21,14 +21,14 @@ public class client{
     
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-    public static void main(String[] args) throws IOException, ClassNotFoundException{
+    public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException{
 
         int requestNum = 101;
         int clientId = 0;
 
-        InetAddress[] hosts = new InetAddress[]{InetAddress.getByName("172.20.10.8"),
-                                                InetAddress.getByName("172.20.10.9"),
-                                                InetAddress.getByName("172.20.10.10")}; // InetAddress.getLocalHost();
+        InetAddress[] hosts = new InetAddress[]{InetAddress.getByName("172.20.10.10"),
+                                                InetAddress.getByName("172.20.10.8"),
+                                                InetAddress.getByName("172.20.10.11")}; // InetAddress.getLocalHost();
         Socket[] sockets = new Socket[3];
         ObjectOutputStream[] outputStreams = new ObjectOutputStream[3]; 
         ObjectInputStream[] inputStreams = new ObjectInputStream[3]; 
@@ -41,19 +41,20 @@ public class client{
         clientId = Integer.parseInt(clientIdInStr);
 
         while(true){
-            
             for (int i = 0; i < 3; i++){
                 try {
                     // sockets[i] = new Socket(host.getHostName(), 9876 + i);
                     sockets[i] = new Socket(hosts[i].getHostName(), 9876);
                     outputStreams[i] = new ObjectOutputStream(sockets[i].getOutputStream());
                 } catch (Exception e){
-                    continue;
+                    continue; 
                 } 
             }
+            // System.out.print("Please Input a value for Changing Server State:");
+            // String inputClientMessage = scanner.nextLine();
 
-            System.out.print("Please Input a value for Changing Server State:");
-            String inputClientMessage = scanner.nextLine();
+            String inputClientMessage = "Client " + clientId + " req " + requestNum;
+            System.out.println("Client sending \"" + requestNum + "\"");
             
 
             for (int i = 0; i < 3; i++){
@@ -86,10 +87,12 @@ public class client{
                 }
             }
             requestNum++;
+            System.out.println();
+
+            Thread.sleep(5000);
         }
-
-
-        
 
     }
 }
+
+

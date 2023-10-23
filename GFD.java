@@ -17,6 +17,7 @@ public class GFD {
         // Create threads for each server socket
         Thread thread = createSocketThread(port);
         thread.start();
+    
         System.out.println("GFD: 0 members");
     }
 
@@ -32,7 +33,7 @@ public class GFD {
                     System.out.println(message);
                     String[] msgs = message.split(" ");
                     String msg = msgs[msgs.length - 1];
-                    System.out.println(message.split(" ")[1]);
+                    // System.out.println(message.split(" ")[1]);
                     if (message.split(" ")[1].equals("add")) {
                         synchronized (membership) {
                             memberCount++;
