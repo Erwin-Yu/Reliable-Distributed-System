@@ -19,32 +19,45 @@ import util.utilFunc;
 
 public class client{
     
+ 
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
+    // 192.168.1.3
     public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException{
-
+        
+        
+        int activeServerNum = 1;
         int requestNum = 101;
         int clientId = 0;
 
-        InetAddress[] hosts = new InetAddress[]{InetAddress.getByName("172.20.10.10"),
-                                                InetAddress.getByName("172.20.10.8"),
-                                                InetAddress.getByName("172.20.10.11")}; // InetAddress.getLocalHost();
-        Socket[] sockets = new Socket[3];
-        ObjectOutputStream[] outputStreams = new ObjectOutputStream[3]; 
-        ObjectInputStream[] inputStreams = new ObjectInputStream[3]; 
-        String[] inputMessages = new String[3];
-        messageTuple[] serverMessageTuples = new messageTuple[3];
+        // InetAddress[] hosts = new InetAddress[]{InetAddress.getByName("172.20.10.10"),
+        //                                         InetAddress.getByName("172.20.10.8"),
+        //                                         InetAddress.getByName("172.20.10.11")}; // InetAddress.getLocalHost();
+        
+        InetAddress[] hosts = new InetAddress[]{InetAddress.getByName("192.168.1.3") }; // InetAddress.getLocalHost();
+        
+        
+        Socket[] sockets = new Socket[activeServerNum];
+        ObjectOutputStream[] outputStreams = new ObjectOutputStream[activeServerNum]; 
+        ObjectInputStream[] inputStreams = new ObjectInputStream[activeServerNum]; 
+        
+        
+        String[] inputMessages = new String[activeServerNum];
+        messageTuple[] serverMessageTuples = new messageTuple[activeServerNum];
         Scanner scanner = new Scanner(System.in);
         System.out.print("Please Input a client Id:");
         String clientIdInStr = scanner.nextLine();
         Set<Integer> reqnum = new HashSet<Integer>();
         clientId = Integer.parseInt(clientIdInStr);
 
+
+        
         while(true){
-            for (int i = 0; i < 3; i++){
+
+            for (int i = 0; i < activeServerNum; i++){
                 try {
                     // sockets[i] = new Socket(host.getHostName(), 9876 + i);
-                    sockets[i] = new Socket(hosts[i].getHostName(), 9876);
+                    sockets[i] = new Socket(hosts[i].getHostName(), 9906);
                     outputStreams[i] = new ObjectOutputStream(sockets[i].getOutputStream());
                 } catch (Exception e){
                     continue; 
@@ -57,7 +70,7 @@ public class client{
             System.out.println("Client sending \"" + requestNum + "\"");
             
 
-            for (int i = 0; i < 3; i++){
+            for (int i = 0; i < activeServerNum; i++){
                 try {
                     messageTuple sendTuple = new messageTuple(clientId, i + 1, requestNum, "request", inputClientMessage);
                     outputStreams[i].writeObject(sendTuple.toString());
@@ -66,7 +79,7 @@ public class client{
                     continue; 
                 }
             }
-            for (int i = 0; i < 3; i++){
+            for (int i = 0; i < 1; i++){
                 try {
                     inputStreams[i] = new ObjectInputStream(sockets[i].getInputStream());
                 } catch (Exception e) {
@@ -74,7 +87,7 @@ public class client{
                 }
             }
  
-            for (int i = 0; i < 3; i++){
+            for (int i = 0; i < activeServerNum; i++){
                 try{
                     inputMessages[i] = (String)inputStreams[i].readObject();
                     serverMessageTuples[i] = messageTuple.fromString(inputMessages[i]);
