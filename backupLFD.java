@@ -10,7 +10,17 @@ import util.utilFunc;
 
 
 public class backupLFD {
-    
+    // ANSI Color Codes
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_BLACK = "\u001B[30m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_YELLOW = "\u001B[33m";
+    public static final String ANSI_BLUE = "\u001B[34m";
+    public static final String ANSI_PURPLE = "\u001B[35m";
+    public static final String ANSI_CYAN = "\u001B[36m";
+    public static final String ANSI_WHITE = "\u001B[37m";
+
     private static int serverNumber = 1;
     static boolean stopTimer = false;
     public static int num = serverNumber; 
@@ -32,7 +42,7 @@ public class backupLFD {
         ObjectInputStream inputStream = null;
         
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Please input the heartBeatFreq:");
+        System.out.print(ANSI_RED + "Please input the heartBeatFreq:" + ANSI_RESET);
         String timeInterval = scanner.nextLine(); 
         int timeIntervalInt = Integer.parseInt(timeInterval);
 
@@ -66,7 +76,7 @@ public class backupLFD {
                         }
                         catch (ClassNotFoundException | IOException ee) {}
                     }
-                    System.out.println("HeartBeat message failed... / Server is currently unreachable...");
+                    System.out.println(ANSI_RED + "HeartBeat message failed... / Server is currently unreachable..." + ANSI_RESET);
                     //Terminate the heartbeat service
                     // timer.cancel();
                 }
@@ -84,14 +94,14 @@ public class backupLFD {
 
         outputStream.writeObject("heartBeat");
 
-        System.out.println("[" + utilFunc.getTime() + "] " + heartBeatCount + " LFD " + (backupLFD.num + 1) + " sending heartbeat to S" + (backupLFD.num + 1));
+        System.out.println(ANSI_RED + "[" + utilFunc.getTime() + "] " + heartBeatCount + " LFD " + (backupLFD.num + 1) + " sending heartbeat to S" + (backupLFD.num + 1) + ANSI_RESET);
     
         ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
         String inputMessage = (String)inputStream.readObject();
 
         //Verify if the server successfully receives the heartbeat message
         if(inputMessage.equals("heartbeat message received")){
-            System.out.println("[" + utilFunc.getTime() + "] " + heartBeatCount + " backupLFD " + (backupLFD.num + 1) + " receives heartbeat from S" + (backupLFD.num + 1));
+            System.out.println(ANSI_RED + "[" + utilFunc.getTime() + "] " + heartBeatCount + " backupLFD " + (backupLFD.num + 1) + " receives heartbeat from S" + (backupLFD.num + 1) + ANSI_RESET);
         }
     }
 
@@ -116,7 +126,7 @@ public class backupLFD {
     
             //Verify if the server successfully receives the heartbeat message
             if(inputMessage.equals("heartbeat message received")){
-                System.out.println("[" + utilFunc.getTime() + "] " + " LFD" + (backupLFD.num + 1) + "'s heartbeat received by GFD");
+                System.out.println(ANSI_RED + "[" + utilFunc.getTime() + "] " + " LFD" + (backupLFD.num + 1) + "'s heartbeat received by GFD" + ANSI_RESET);
             }
         }
     }

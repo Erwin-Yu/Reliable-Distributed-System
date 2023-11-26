@@ -23,6 +23,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class server {
+    // ANSI Color Codes
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_BLACK = "\u001B[30m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_YELLOW = "\u001B[33m";
+    public static final String ANSI_BLUE = "\u001B[34m";
+    public static final String ANSI_PURPLE = "\u001B[35m";
+    public static final String ANSI_CYAN = "\u001B[36m";
+    public static final String ANSI_WHITE = "\u001B[37m";
+
     static ServerSocket newServer;
     private static String my_state;
     private int heartBeatCount = 0; 
@@ -52,6 +63,8 @@ public class server {
     public server(ServerSocket newServer, String my_state) {
         this.newServer = newServer; 
         this.my_state = my_state;
+        // Print initial state of the server
+        System.out.println("Initial state of primary server: " + this.my_state);
     }
     
     synchronized void changeState(String newValue) {
@@ -134,7 +147,7 @@ public class server {
             for (int i = 0; i < activeBackupServerNum; i++){
                 try {    
                     outputStreams[i].writeObject(checkPointMessage.toString());
-                    System.out.println("[" + utilFunc.getTime() + "] Sent to Backup Server " + (i + 1) + " " + checkPointMessage.toString());
+                    System.out.println(ANSI_GREEN + "[" + utilFunc.getTime() + "] Sent to Backup Server " + (i + 1) + " " + checkPointMessage.toString() + ANSI_RESET);
 
 
                 } catch (Exception e){
@@ -179,6 +192,17 @@ public class server {
 
 
 class ClientHandler implements Runnable {
+    // ANSI Color Codes
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_BLACK = "\u001B[30m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_YELLOW = "\u001B[33m";
+    public static final String ANSI_BLUE = "\u001B[34m";
+    public static final String ANSI_PURPLE = "\u001B[35m";
+    public static final String ANSI_CYAN = "\u001B[36m";
+    public static final String ANSI_WHITE = "\u001B[37m";
+
     private Socket clientSocket;
     private ObjectInputStream inputStream;
     private ObjectOutputStream outputStream;
@@ -205,9 +229,9 @@ class ClientHandler implements Runnable {
         if (clientMessage.equals("heartBeat")){
                 try {
            
-                    System.out.println("[" + utilFunc.getTime() + "] " + this.server.getheartBeat() + " Server " + (server.num + 1) + "receives heartbeat from LFD" + (server.num + 1));
+                    System.out.println(ANSI_RED + "[" + utilFunc.getTime() + "] " + this.server.getheartBeat() + " Server " + (server.num + 1) + "receives heartbeat from LFD" + (server.num + 1) + ANSI_RESET);
                     outputStream.writeObject("heartbeat message received");
-                    System.out.println("[" + utilFunc.getTime() + "] " + this.server.getheartBeat() + " Server " + (server.num + 1) + " sents heartbeat to LFD" + (server.num + 1));
+                    System.out.println(ANSI_RED + "[" + utilFunc.getTime() + "] " + this.server.getheartBeat() + " Server " + (server.num + 1) + " sents heartbeat to LFD" + (server.num + 1) + ANSI_RESET);
                     
                     this.server.addheartBeat();
                 } catch (IOException e) {
