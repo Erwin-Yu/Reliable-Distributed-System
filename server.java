@@ -6,6 +6,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.InetAddress;
@@ -32,16 +33,12 @@ public class server {
         public static int PrimaryServerId =0;
         public static int num = PrimaryServerId;
         public static int activeBackupServerNum = 2;
-        public static int checkpointFreq = 2000;
+        public static int checkpointFreq = 4000;
         public static int checkpointCount = 0;
 
         // Variables for connections with backup servers
-
         //Go to line 99 and manually change the host addresses  and ports of backup servers
     
-
-
-
     void addheartBeat(){
         this.heartBeatCount = this.heartBeatCount + 1; 
     }
@@ -67,7 +64,7 @@ public class server {
 
     public static void main(String[] args) throws IOException, ClassNotFoundException{
         Timer timer;
-        int port = 9906;
+        int port = 9876;
         System.out.println("this is the server has port: " + port);
 
         newServer = new ServerSocket(port);
@@ -98,23 +95,20 @@ public class server {
             Runnable clientHandler = new ClientHandler(newSocket, s);
             executorService.execute(clientHandler);
             count.incrementAndGet();
-            
-
         }
     }
 
 
     public static void sendCheckPointMessageToBackUps(boolean serverReachable,server s) throws IOException, ClassNotFoundException{
-      
         
         InetAddress[] backUpServerhosts = new InetAddress[]{
-                                            InetAddress.getByName("192.168.1.3"),
-                                            InetAddress.getByName("192.168.1.3")
+                                            InetAddress.getByName("172.26.25.211"),
+                                            InetAddress.getByName("172.26.71.23")
                                         }; 
 
         int[] backUpServerPorts = new int[]{
-            9916, 
-            9946
+            9876,
+            9876
             };
 
         Socket[] sockets = new Socket[activeBackupServerNum];
@@ -122,20 +116,36 @@ public class server {
         try {
  
             for (int i = 0; i < activeBackupServerNum; i++){
-                try {
-                    // sockets[i] = new Socket(host.getHostName(), 9876 + i);
-                    sockets[i] = new Socket(backUpServerhosts[i].getHostName(), backUpServerPorts[i]);
+
+                 try {
+                    sockets[i] = new Socket();
+                    sockets[i].connect(new InetSocketAddress(backUpServerhosts[i], backUpServerPorts[i]), 500); // Set a timeout of 1000 milliseconds (1 second)
                     outputStreams[i] = new ObjectOutputStream(sockets[i].getOutputStream());
-                } catch (Exception e){
-                    continue; 
-                } 
+                } catch (IOException e) {
+                    // Server is unreachable or timeout occurred, skip it
+                    if (sockets[i] != null) {
+                        sockets[i].close(); // Close the socket if it was opened
+                    }
+                    continue;
+                }
+
+                // try {
+                //     // sockets[i] = new Socket(host.getHostName(), 9876 + i);
+                //     sockets[i] = new Socket(backUpServerhosts[i].getHostName(), backUpServerPorts[i]);
+                //     outputStreams[i] = new ObjectOutputStream(sockets[i].getOutputStream());
+                // } catch (Exception e){
+                //     continue; 
+                // }
+                
             }
+
             checkPointMessageTuple checkPointMessage = new checkPointMessageTuple(s.my_state, s.checkpointCount);
             for (int i = 0; i < activeBackupServerNum; i++){
                 try {    
-                    outputStreams[i].writeObject(checkPointMessage.toString());
-                    System.out.println("[" + utilFunc.getTime() + "] Sent to Backup Server " + (i + 1) + " " + checkPointMessage.toString());
-
+                    if(outputStreams[i] != null){
+                        outputStreams[i].writeObject(checkPointMessage.toString());
+                        System.out.println("[" + utilFunc.getTime() + "] Sent to Backup Server " + (i + 1) + " " + checkPointMessage.toString());
+                    }
 
                 } catch (Exception e){
                     continue; 

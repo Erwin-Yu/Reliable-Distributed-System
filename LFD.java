@@ -16,7 +16,8 @@ public class LFD {
     static boolean stopTimer = false;
     public static int num = serverNumber; 
     private static int portGDF = 9886;
-    private static int port = 9906; 
+    private static int port = 9876; 
+
     public static void main(String[] args) throws IOException, ClassNotFoundException{
         int heartBeatFreq = 1;
         Timer timer;
@@ -91,7 +92,7 @@ public class LFD {
     }
 
 
-        static String GDFAddress = "192.168.1.3";
+        static String GDFAddress = "172.26.82.142";
 
         public static void sendHeartBeatToGFD(boolean serverReachable) throws IOException, ClassNotFoundException{
             Socket socket = new Socket(GDFAddress, portGDF);
