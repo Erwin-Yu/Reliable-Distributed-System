@@ -20,6 +20,18 @@ import data.messageTuple;
 import util.utilFunc;
 
 public class backupServer {
+
+    // ANSI Color Codes
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_BLACK = "\u001B[30m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_YELLOW = "\u001B[33m";
+    public static final String ANSI_BLUE = "\u001B[34m";
+    public static final String ANSI_PURPLE = "\u001B[35m";
+    public static final String ANSI_CYAN = "\u001B[36m";
+    public static final String ANSI_WHITE = "\u001B[37m";
+
     private static ServerSocket newServer;
     private static String my_state;
     private int heartBeatCount = 0; 
@@ -29,7 +41,7 @@ public class backupServer {
     // *** every backupServer must identify their unique Ids (server 2 and 3 are backup servers)
     public static int backUpServerId =1;
     public static int num = backUpServerId;
-    public static int currentServerPort = 9916;
+    public static int currentServerPort = 9876;
     public static int checkpointCount = 0;
 
     void addheartBeat(){
@@ -43,27 +55,38 @@ public class backupServer {
         this.newServer = newServer; 
         this.my_state = my_state;
         this.checkpointCount = 0;
-    }
-    synchronized void changeState(String newValue) {
-        this.my_state = newValue;
+        System.out.println("Initial state of this backup server: " + this.my_state);
     }
 
     synchronized void changeCheckPointCount(int count) {
         this.checkpointCount = count;
     }
 
+    synchronized void changeState(String newValue) {
+        this.my_state = newValue;
+    }
+
+
     synchronized String getState() {
         return my_state;
     }
+
+
+    public synchronized void incrementCheckPointCount() {
+        this.checkpointCount++;
+    }
+
+
+
     public static void main(String[] args) throws IOException, ClassNotFoundException{
 
         int port = currentServerPort;
-
         System.out.println("this is the server has port: " + port);
         newServer = new ServerSocket(port);
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         backupServer s = new backupServer(newServer, "initial state");
         Socket newSocket = null;
+
 
         while(true){
             newSocket = s.newServer.accept();
@@ -72,6 +95,13 @@ public class backupServer {
         }
     }
 }
+
+
+
+
+
+
+
 
 
 class ClientHandler implements Runnable {
@@ -151,12 +181,5 @@ class ClientHandler implements Runnable {
             }
             System.out.println(utilFunc.getTime() + " Sending " + clientMessageTuple.toPrintString());
         }
-
-        
-
-
-
-
-        
     }
 }

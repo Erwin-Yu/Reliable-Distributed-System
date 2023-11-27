@@ -57,7 +57,7 @@ public class client{
             for (int i = 0; i < activeServerNum; i++){
                 try {
                     // sockets[i] = new Socket(host.getHostName(), 9876 + i);
-                    sockets[i] = new Socket(hosts[i].getHostName(), 9906);
+                    sockets[i] = new Socket(hosts[i].getHostName(), 9876);
                     outputStreams[i] = new ObjectOutputStream(sockets[i].getOutputStream());
                 } catch (Exception e){
                     continue; 

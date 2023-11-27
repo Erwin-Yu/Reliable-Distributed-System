@@ -15,11 +15,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import data.checkPointMessageTuple;
 import data.messageTuple;
 import util.utilFunc;
-
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -75,11 +73,13 @@ public class server {
         this.checkpointCount++;
     }
 
+
+
+
     public static void main(String[] args) throws IOException, ClassNotFoundException{
         Timer timer;
         int port = 9876;
         System.out.println("this is the server has port: " + port);
-
         newServer = new ServerSocket(port);
         
         ExecutorService executorService = Executors.newFixedThreadPool(10);
@@ -141,15 +141,6 @@ public class server {
                     }
                     continue;
                 }
-
-                // try {
-                //     // sockets[i] = new Socket(host.getHostName(), 9876 + i);
-                //     sockets[i] = new Socket(backUpServerhosts[i].getHostName(), backUpServerPorts[i]);
-                //     outputStreams[i] = new ObjectOutputStream(sockets[i].getOutputStream());
-                // } catch (Exception e){
-                //     continue; 
-                // }
-                
             }
 
             checkPointMessageTuple checkPointMessage = new checkPointMessageTuple(s.my_state, s.checkpointCount);
@@ -174,30 +165,6 @@ public class server {
         }catch (Exception e) {
         }
     }
-
-        // if (serverReachable) {
-        //     String msg = String.format("LFD%d: add replica S%d", LFD.num + 1, LFD.num + 1);
-        //     outputStream.writeObject(msg);
-        //     System.out.println("[" + utilFunc.getTime() + "] " + msg);
-        // }
-        // else {
-        //     String msg = String.format("LFD%d: delete replica S%d", LFD.num + 1, LFD.num + 1);
-        //     //String msg = "LFD1: delete replica S1";
-        //     outputStream.writeObject(msg);
-        //     System.out.println("[" + utilFunc.getTime() + "] " + msg);
-        // }
-
-        // ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
-        // String inputMessage = (String)inputStream.readObject();
-
-        // //Verify if the server successfully receives the heartbeat message
-        // if(inputMessage.equals("heartbeat message received")){
-        //     System.out.println("[" + utilFunc.getTime() + "] " + " LFD" + (LFD.num + 1) + "'s heartbeat received by GFD");
-        // }
-
-
-
-
 }
 
 

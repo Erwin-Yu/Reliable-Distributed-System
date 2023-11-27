@@ -27,6 +27,7 @@ public class LFD {
     public static int num = serverNumber; 
     private static int portGDF = 9886;
     private static int port = 9876; 
+    static String GDFAddress = "172.26.82.142";
 
     public static void main(String[] args) throws IOException, ClassNotFoundException{
         int heartBeatFreq = 1;
@@ -100,9 +101,6 @@ public class LFD {
             System.out.println(ANSI_RED + "[" + utilFunc.getTime() + "] " + heartBeatCount + " LFD " + (LFD.num + 1) + " receives heartbeat from S" + (LFD.num + 1) + ANSI_RESET);
         }
     }
-
-
-        static String GDFAddress = "172.26.82.142";
 
         public static void sendHeartBeatToGFD(boolean serverReachable) throws IOException, ClassNotFoundException{
             Socket socket = new Socket(GDFAddress, portGDF);
