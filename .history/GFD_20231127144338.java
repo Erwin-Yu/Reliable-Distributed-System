@@ -22,7 +22,7 @@ public class GFD {
     private static int memberCount = 0;
     private static List<String> membership = new ArrayList<>();
     private static int portRM = 10000;
-
+    
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         int port= 9886;
         
@@ -59,7 +59,6 @@ public class GFD {
                             membership.remove(msg);
                         }
                     }
-                    sendHeartBeatToRM(message);
                     handleHeartbeat(socket);
                 }
             } catch (IOException | ClassNotFoundException e) {
