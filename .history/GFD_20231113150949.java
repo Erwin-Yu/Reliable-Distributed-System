@@ -47,7 +47,7 @@ public class GFD {
                             membership.remove(msg);
                         }
                     }
-                    // System.out.println("Begin to send HB to RM");
+                    System.out.println("Begin to send HB to RM");
                     sendHeartBeatToRM(message);
                     handleHeartbeat(socket);
                 }

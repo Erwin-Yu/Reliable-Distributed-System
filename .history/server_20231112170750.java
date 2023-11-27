@@ -67,7 +67,7 @@ public class server {
 
     public static void main(String[] args) throws IOException, ClassNotFoundException{
         Timer timer;
-        int port = 9906;
+        int port = 9946;
         System.out.println("this is the server has port: " + port);
 
         newServer = new ServerSocket(port);

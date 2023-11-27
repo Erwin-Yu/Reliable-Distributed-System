@@ -108,8 +108,8 @@ public class server {
       
         
         InetAddress[] backUpServerhosts = new InetAddress[]{
-                                            InetAddress.getByName(InetAddress.getLocalHost().getHostName()),
-                                            InetAddress.getByName(InetAddress.getLocalHost().getHostName())
+                                            InetAddress.getByName("192.168.1.3"),
+                                            InetAddress.getByName("192.168.1.3")
                                         }; 
 
         int[] backUpServerPorts = new int[]{

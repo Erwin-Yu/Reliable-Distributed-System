@@ -47,8 +47,6 @@ public class GFD {
                             membership.remove(msg);
                         }
                     }
-                    // System.out.println("Begin to send HB to RM");
-                    sendHeartBeatToRM(message);
                     handleHeartbeat(socket);
                 }
             } catch (IOException | ClassNotFoundException e) {
@@ -73,6 +71,8 @@ public class GFD {
             }
         }
         System.out.println(msg);
+        System.out.println("Begin to send HB to RM");
+        sendHeartBeatToRM(msg);
         socket.close();
     }
 

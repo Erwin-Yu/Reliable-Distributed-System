@@ -41,14 +41,14 @@ public class GFD {
                             memberCount++;
                             membership.add(msg);
                         }
+                        System.out.println("Begin to send HB to RM");
+                        sendHeartBeatToRM(message);
                     } else {
                         synchronized (membership) {
                             memberCount--;
                             membership.remove(msg);
                         }
                     }
-                    // System.out.println("Begin to send HB to RM");
-                    sendHeartBeatToRM(message);
                     handleHeartbeat(socket);
                 }
             } catch (IOException | ClassNotFoundException e) {

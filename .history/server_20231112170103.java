@@ -67,7 +67,7 @@ public class server {
 
     public static void main(String[] args) throws IOException, ClassNotFoundException{
         Timer timer;
-        int port = 9906;
+        int port = 9907;
         System.out.println("this is the server has port: " + port);
 
         newServer = new ServerSocket(port);
@@ -108,8 +108,8 @@ public class server {
       
         
         InetAddress[] backUpServerhosts = new InetAddress[]{
-                                            InetAddress.getByName(InetAddress.getLocalHost().getHostName()),
-                                            InetAddress.getByName(InetAddress.getLocalHost().getHostName())
+                                            InetAddress.getByName("192.168.1.3"),
+                                            InetAddress.getByName("192.168.1.3")
                                         }; 
 
         int[] backUpServerPorts = new int[]{

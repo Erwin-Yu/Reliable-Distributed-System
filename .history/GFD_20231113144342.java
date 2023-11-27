@@ -47,8 +47,6 @@ public class GFD {
                             membership.remove(msg);
                         }
                     }
-                    // System.out.println("Begin to send HB to RM");
-                    sendHeartBeatToRM(message);
                     handleHeartbeat(socket);
                 }
             } catch (IOException | ClassNotFoundException e) {
@@ -73,13 +71,14 @@ public class GFD {
             }
         }
         System.out.println(msg);
+        sendHeartBeatToRM(msg);
         socket.close();
     }
 
     public static void sendHeartBeatToRM(String msg) throws IOException, ClassNotFoundException{
             Socket socket = new Socket(InetAddress.getLocalHost().getHostName(), portRM);
             ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
-            System.out.println("msg is " + msg);
+            System.out.println("msg is" + msg);
             outputStream.writeObject(msg);
         }
 }

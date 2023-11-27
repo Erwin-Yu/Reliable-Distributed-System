@@ -91,10 +91,10 @@ public class LFD {
     }
 
 
-        // static String GDFAddress = InetAddress.getLocalHost().getHostName();
+        static String GDFAddress = "192.168.1.3";
 
         public static void sendHeartBeatToGFD(boolean serverReachable) throws IOException, ClassNotFoundException{
-            Socket socket = new Socket(InetAddress.getLocalHost().getHostName(), portGDF);
+            Socket socket = new Socket(GDFAddress, portGDF);
             ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
     
             if (serverReachable) {
