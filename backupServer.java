@@ -293,7 +293,7 @@ class ClientHandler implements Runnable {
             //Otherwise the message is from one of the clients and we convert it into 'messageTuple' object
             messageTuple clientMessageTuple = messageTuple.fromString(clientMessage);
             if (this.server.i_am_ready == 0) {
-                this.server.high_watermark_request_num.add(clientMessage);
+                this.server.high_watermark_request_num.add(clientMessageTuple.newStateValue);
                 return;
             }
             

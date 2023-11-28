@@ -7,7 +7,7 @@ public class messageTuple{
     private int replicaId;
     private int requestNum;
     public String messageDirection;
-    private String newStateValue;
+    public String newStateValue;
 
     public messageTuple(int clientId, int replicaId, int requestNum,String messageDirection, String newStateValue){
         this.clientId = clientId;
