@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -19,6 +20,7 @@ public class RM {
     public static final String ANSI_CYAN = "\u001B[36m";
     public static final String ANSI_WHITE = "\u001B[37m";
     private static int memberCount = 0;
+    public static int portGFD = 9886;
     private static List<String> membership = new ArrayList<>();
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
@@ -56,6 +58,17 @@ private static Thread createSocketThread(int port) {
                         }
                     }
                     handleHeartbeat(socket);
+                    // msg = "RM: ";
+                    // msg += memberCount + " member" + (memberCount != 1 ? "s: " : ": ");
+                    // synchronized (membership) {
+                    //     for (int i = 0; i < memberCount - 1; i++) {
+                    //         msg += membership.get(i) + ", ";
+                    //     }
+                    //     if (memberCount > 0) {
+                    //         msg += membership.get(memberCount - 1);
+                    //     }
+                    // }
+                    // sendHeartBeatToGFD(msg);
                 }
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
@@ -81,4 +94,10 @@ private static Thread createSocketThread(int port) {
         socket.close();
     }
 
+    // public static void sendHeartBeatToGFD(String msg) throws IOException, ClassNotFoundException{
+    //         Socket socket = new Socket(InetAddress.getLocalHost().getHostName(), portGFD);
+    //         ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
+    //         // System.out.println("msg is " + msg);
+    //         outputStream.writeObject(msg);
+    //     }
 }

@@ -22,12 +22,12 @@ public class LFD {
     public static final String ANSI_CYAN = "\u001B[36m";
     public static final String ANSI_WHITE = "\u001B[37m";
 
-    private static int serverNumber = 0;
+    private static int serverNumber = 1;
     static boolean stopTimer = false;
     public static int num = serverNumber; 
     private static int portGDF = 9886;
     private static int port = 9876; 
-    static String GDFAddress = "172.26.82.142";
+    static String GDFAddress = "172.26.113.135";
 
     public static void main(String[] args) throws IOException, ClassNotFoundException{
         int heartBeatFreq = 1;

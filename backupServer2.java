@@ -29,6 +29,7 @@ public class backupServer2 {
     // *** every backupServer must identify their unique Ids (server 2 and 3 are backup servers)
     public static int backUpServerId =2;
     public static int num = backUpServerId;
+    public static int i_am_ready = 0;
     public static int currentServerPort = 9946;
     public static int checkpointCount = 0;
 
