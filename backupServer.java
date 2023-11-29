@@ -100,10 +100,6 @@ public class backupServer {
 
 
 
-
-
-
-
 class ClientHandler implements Runnable {
     // ANSI Color Codes
     public static final String ANSI_RESET = "\u001B[0m";

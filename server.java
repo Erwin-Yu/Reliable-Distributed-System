@@ -1,6 +1,9 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.EOFException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -9,6 +12,9 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.net.InetAddress;
 import java.time.Instant;
 import java.util.Timer;
@@ -18,6 +24,8 @@ import java.util.concurrent.Executors;
 import data.checkPointMessageTuple;
 import data.messageTuple;
 import util.utilFunc;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -38,15 +46,18 @@ public class server {
     private int heartBeatCount = 0; 
 
     // Variables that are needed to change:
-        //Checkpoint with backup Servers
-        public static int PrimaryServerId =0;
-        public static int num = PrimaryServerId;
-        public static int activeBackupServerNum = 2;
-        public static int checkpointFreq = 4000;
-        public static int checkpointCount = 0;
+    //Checkpoint with backup Servers
+    public static int num = 0;
+    public static int i_am_ready = 1;
+    public static int activeBackupServerNum = 2;
+    public static int checkpointFreq = 500;
+    public static int checkpointCount = 0;
+    public Timer timer;
+    public Timer resetTimer;
+    public AtomicInteger count;
 
-        // Variables for connections with backup servers
-        //Go to line 99 and manually change the host addresses  and ports of backup servers
+    // Variables for connections with backup servers
+    //Go to line 99 and manually change the host addresses  and ports of backup servers
     
     void addheartBeat(){
         this.heartBeatCount = this.heartBeatCount + 1; 
@@ -55,12 +66,22 @@ public class server {
     int getheartBeat(){
         return this.heartBeatCount; 
     }
+
     public server(ServerSocket newServer, String my_state) {
         this.newServer = newServer; 
         this.my_state = my_state;
+        this.timer = new Timer();
+        this.resetTimer = new Timer();
+        this.count = new AtomicInteger(0);
+        // this.beginningTime = true;
         // Print initial state of the server
         System.out.println("Initial state of primary server: " + this.my_state);
     }
+
+    synchronized void changeCheckPointCount(int count) {
+        this.checkpointCount = count;
+    }
+
     
     synchronized void changeState(String newValue) {
         this.my_state = newValue;
@@ -77,7 +98,43 @@ public class server {
 
 
     public static void main(String[] args) throws IOException, ClassNotFoundException{
-        Timer timer;
+
+
+                // Check if the file exists
+        Path filePath = Paths.get("servernum.txt");
+        if (Files.notExists(filePath)) {
+            try {
+                // Create the file if it doesn't exist
+                Files.createFile(filePath);
+            } catch (IOException e) {
+                e.printStackTrace();
+                // Handle the exception or log it appropriately
+                return; // Exit the program or handle the situation accordingly
+            }
+        }
+
+        // Needed for milestone 5 : recovery of the primary server and change to be the follower
+        // read the server num from the count file, if it is empty, it is 
+        try (BufferedReader reader = new BufferedReader(new FileReader("servernum.txt"))) {
+            String line = reader.readLine();
+            if (line != null && !line.isEmpty()) {
+                num = Integer.parseInt(line) + 3;
+            } else {
+                num = 0;
+            }
+        } catch (IOException | NumberFormatException e) {
+            e.printStackTrace();
+        }
+
+        // write into count file 
+         try (BufferedWriter writer = new BufferedWriter(new FileWriter("servernum.txt"))) {
+            writer.write(String.valueOf(num));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Timer timer;
+        // Timer resetTimer;
         int port = 9876;
         System.out.println("this is the server has port: " + port);
         newServer = new ServerSocket(port);
@@ -86,15 +143,17 @@ public class server {
         server s = new server(newServer, "initial state");
         Socket newSocket = null;
 
-        // int clientHandlerCount = 0;
-        AtomicInteger count = new AtomicInteger(0);
 
-        timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask(){
+        // schedule the normal checkpoint 
+        s.timer.scheduleAtFixedRate(new TimerTask(){
             @Override
             public void run(){
                 try {
-                    if(count.get() > 0 ){
+
+                    System.out.println("line 153 s.count.get() value is: " + s.count.get() + "\n");
+
+                    if (s.count.get() > 0){
+                        System.out.println("Line 302 Now this becomes the new primary replica!!!\n");
                         sendCheckPointMessageToBackUps(true, s);
                     }
                 } catch (ClassNotFoundException | IOException e) {
@@ -102,12 +161,23 @@ public class server {
                 }
             }
         }, 0, checkpointFreq);
+    
+        // reset the count if not receive the checkpoint
+        // Do not need to reset the timer since num = 0 already the leader 
+        if (s.num == 0) {
+            s.resetTimer.scheduleAtFixedRate(new TimerTask(){
+            public void run(){
+                s.count.set(1);
+                System.out.println(" Lin 167 Now this becomes the new primary replica!!!\n");
+            }
+            },15000,15000);
+        }
 
         while(true){
             newSocket = s.newServer.accept();
             Runnable clientHandler = new ClientHandler(newSocket, s);
             executorService.execute(clientHandler);
-            count.incrementAndGet();
+            // count.incrementAndGet();
         }
     }
 
@@ -115,8 +185,8 @@ public class server {
     public static void sendCheckPointMessageToBackUps(boolean serverReachable,server s) throws IOException, ClassNotFoundException{
         
         InetAddress[] backUpServerhosts = new InetAddress[]{
-                                            InetAddress.getByName("172.26.25.211"),
-                                            InetAddress.getByName("172.26.71.23")
+                                            InetAddress.getByName("172.26.3.138"),
+                                            InetAddress.getByName("")
                                         }; 
 
         int[] backUpServerPorts = new int[]{
@@ -143,7 +213,7 @@ public class server {
                 }
             }
 
-            checkPointMessageTuple checkPointMessage = new checkPointMessageTuple(s.my_state, s.checkpointCount);
+            checkPointMessageTuple checkPointMessage = new checkPointMessageTuple(s.my_state, s.checkpointCount, s.num);
             for (int i = 0; i < activeBackupServerNum; i++){
                 try {    
                     if(outputStreams[i] != null){
@@ -184,11 +254,14 @@ class ClientHandler implements Runnable {
     private ObjectInputStream inputStream;
     private ObjectOutputStream outputStream;
     private server server;
+    // private Timer resetTimer;
+
     public ClientHandler(Socket socket, server s) throws IOException {
         this.clientSocket = socket;
         this.server = s; 
         this.inputStream = new ObjectInputStream(socket.getInputStream()); 
         this.outputStream = new ObjectOutputStream(socket.getOutputStream());
+        // this.resetTimer = s.resetTimer;
     }
 
     @Override
@@ -205,24 +278,64 @@ class ClientHandler implements Runnable {
         }
         if (clientMessage.equals("heartBeat")){
                 try {
-           
-                    System.out.println(ANSI_RED + "[" + utilFunc.getTime() + "] " + this.server.getheartBeat() + " Server " + (server.num + 1) + "receives heartbeat from LFD" + (server.num + 1) + ANSI_RESET);
+                    System.out.println(ANSI_RED + "[" + utilFunc.getTime() + "] " + this.server.getheartBeat() + " Server " + (server.num % 3 + 1) + "receives heartbeat from LFD" + (server.num % 3 + 1) + ANSI_RESET);
                     outputStream.writeObject("heartbeat message received");
-                    System.out.println(ANSI_RED + "[" + utilFunc.getTime() + "] " + this.server.getheartBeat() + " Server " + (server.num + 1) + " sents heartbeat to LFD" + (server.num + 1) + ANSI_RESET);
-                    
+                    System.out.println(ANSI_RED + "[" + utilFunc.getTime() + "] " + this.server.getheartBeat() + " Server " + (server.num % 3 + 1) + " sents heartbeat to LFD" + (server.num % 3 + 1) + ANSI_RESET);
                     this.server.addheartBeat();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+        } else if(clientMessage.startsWith("<checkpoint,") && clientMessage.endsWith(">"))  {
+            // change the current server to be a backup server
+            checkPointMessageTuple checkPointMessage = checkPointMessageTuple.fromString(clientMessage);  
+            // if server num is larger than our server's: disregard
+            if (checkPointMessage.servernum > this.server.num) {
+                return; 
+            }
+
+            // this.server.num = 2;
+            // set back the count to 0: follower
+            this.server.count.set(0);
+            this.server.i_am_ready = 1;
+            // reset the re-election timer
+            this.server.resetTimer.cancel();
+            System.out.println(" resetTimer.cancel()");
+            this.server.resetTimer = new Timer();
+
+            System.out.println("server.count value is: " +  server.count +"\n");
+
+            this.server.resetTimer.scheduleAtFixedRate(new TimerTask(){
+            public void run(){
+                server.count.set(1);
+                System.out.println("!!!!!!!!!!");
+            }
+            },15000,15000);
+
+            // resetTimer.schedule(new TimerTask(){
+            //     public void run(){
+            //         server.count.set(1);
+            //         server.i_am_ready = 1;
+            //         System.out.println("This is in Client Handler\n");
+            //         System.out.println("Now this becomes the new primary replica!!!\n");
+            //     }
+            // },10000,10000);
+            
+            System.out.println(ANSI_GREEN + "[" + utilFunc.getTime() + "] " + " Received CheckPoint message: " + checkPointMessage.toString() + ANSI_RESET);
+
+            //Print my_state beore and after the procession of the check point message
+            this.server.changeState(checkPointMessage.getNewStateValue());
+            this.server.changeCheckPointCount(checkPointMessage.getCheckpointCount());
+            System.out.println(ANSI_GREEN + "[" + utilFunc.getTime() + "] " + " my_state_S" + (server.num % 3 + 1) + " =" + this.server.getState() + " after processing the CheckPoint message: " + checkPointMessage.toString() + ANSI_RESET);
+        
         }else{
             //Otherwise the message is from one of the clients and we convert it into 'messageTuple' object
             messageTuple clientMessageTuple = messageTuple.fromString(clientMessage);
             System.out.println(utilFunc.getTime() + " Received " + clientMessageTuple.toPrintString());
         
             //Print my_state beore and after the procession of the message
-            System.out.println(utilFunc.getTime() + " my_state_S" + (server.num + 1) + " =" + this.server.getState() + " before processing " + clientMessageTuple.toPrintString());
+            System.out.println(utilFunc.getTime() + " my_state_S" + (server.num % 3 + 1) + " =" + this.server.getState() + " before processing " + clientMessageTuple.toPrintString());
             this.server.changeState(clientMessageTuple.getNewStateValue());
-            System.out.println(utilFunc.getTime() + " my_state_S" + (server.num + 1) + " =" + this.server.getState() + " after processing " + clientMessageTuple.toPrintString());
+            System.out.println(utilFunc.getTime() + " my_state_S" + (server.num % 3 + 1) + " =" + this.server.getState() + " after processing " + clientMessageTuple.toPrintString());
 
             messageTuple replyMessageTuple = clientMessageTuple;
             replyMessageTuple.setMessageDirection("reply");
@@ -236,8 +349,4 @@ class ClientHandler implements Runnable {
             System.out.println(utilFunc.getTime() + " Sending " + clientMessageTuple.toPrintString());
         }
     }
-
 }
-
-
-
