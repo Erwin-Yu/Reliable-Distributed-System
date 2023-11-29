@@ -12,6 +12,9 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.net.InetAddress;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -47,10 +50,10 @@ public class backupServer {
 
     // Variables that are needed to change:
     //Checkpoint with backup Servers
-    public static int num = 0;
+    public static int num = 1;
     public static int i_am_ready = 0;
     public static int activeBackupServerNum = 2;
-    public static int checkpointFreq = 4000;
+    public static int checkpointFreq = 500;
     public static int checkpointCount = 0;
     public Timer timer;
     public Timer resetTimer;
@@ -98,25 +101,39 @@ public class backupServer {
 
 
     public static void main(String[] args) throws IOException, ClassNotFoundException{
-        // Needed for milestone 5 : recovery of the primary server and change to be the follower
-        // // read the server num from the count file, if it is empty, it is 
-        // try (BufferedReader reader = new BufferedReader(new FileReader("servernum.txt"))) {
-        //     String line = reader.readLine();
-        //     if (line != null && !line.isEmpty()) {
-        //         num = Integer.parseInt(line) + 3;
-        //     } else {
-        //         num = 1;
-        //     }
-        // } catch (IOException | NumberFormatException e) {
-        //     e.printStackTrace();
-        // }
+        // Check if the file exists
+        Path filePath = Paths.get("servernum.txt");
+        if (Files.notExists(filePath)) {
+            try {
+                // Create the file if it doesn't exist
+                Files.createFile(filePath);
+            } catch (IOException e) {
+                e.printStackTrace();
+                // Handle the exception or log it appropriately
+                return; // Exit the program or handle the situation accordingly
+            }
+        }
 
-        // // write into count file 
-        //  try (BufferedWriter writer = new BufferedWriter(new FileWriter("servernum.txt"))) {
-        //     writer.write(String.valueOf(num));
-        // } catch (IOException e) {
-        //     e.printStackTrace();
-        // }
+        // Needed for milestone 5 : recovery of the primary server and change to be the follower
+        // read the server num from the count file, if it is empty, it is 
+        try (BufferedReader reader = new BufferedReader(new FileReader("servernum.txt"))) {
+            String line = reader.readLine();
+            if (line != null && !line.isEmpty()) {
+                num = Integer.parseInt(line) + 3;
+            } else {
+                // num = 1;
+            }
+        } catch (IOException | NumberFormatException e) {
+            e.printStackTrace();
+        }
+
+        // write into count file 
+         try (BufferedWriter writer = new BufferedWriter(new FileWriter("servernum.txt"))) {
+            writer.write(String.valueOf(num));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         int port = 9876;
         System.out.println("this is the server has port: " + port);
         newServer = new ServerSocket(port);
@@ -141,13 +158,13 @@ public class backupServer {
     
         // reset the count if not receive the checkpoint
         // Do not need to reset the timer since num = 0 already the leader 
-        if (s.num != 0) {
+        if (s.num == 0) {
             s.resetTimer.scheduleAtFixedRate(new TimerTask(){
             public void run(){
                 s.count.set(1);
-                System.out.println("Now this becomes the new primary replica!!!\n");
+                System.out.println("Line 165 Now this becomes the new primary replica!!!\n");
             }
-            },10000,10000);
+            },15000,15000);
         }
 
         while(true){
@@ -162,8 +179,8 @@ public class backupServer {
     public static void sendCheckPointMessageToBackUps(boolean serverReachable, backupServer s) throws IOException, ClassNotFoundException{
         
         InetAddress[] backUpServerhosts = new InetAddress[]{
-                                            InetAddress.getByName("172.26.6.2"),
-                                            InetAddress.getByName("172.26.104.42")
+                                            InetAddress.getByName("172.26.13.22"),
+                                            InetAddress.getByName("")
                                         }; 
 
         int[] backUpServerPorts = new int[]{
@@ -273,14 +290,23 @@ class ClientHandler implements Runnable {
             this.server.i_am_ready = 1;
             // reset the re-election timer
             this.server.resetTimer.cancel();
-            this.server.resetTimer.schedule(new TimerTask(){
+            this.server.resetTimer = new Timer();
+            this.server.resetTimer.scheduleAtFixedRate(new TimerTask(){
                 public void run(){
                     server.count.set(1);
                     server.i_am_ready = 1;
                     System.out.println("This is in Client Handler\n");
-                    System.out.println("Now this becomes the new primary replica!!!\n");
+                    System.out.println("Line 299 Now this becomes the new primary replica!!!\n");
                 }
-            },10000,10000);
+            },15000,15000);
+            // this.server.resetTimer.schedule(new TimerTask(){
+            //     public void run(){
+            //         server.count.set(1);
+            //         server.i_am_ready = 1;
+            //         System.out.println("This is in Client Handler\n");
+            //         System.out.println("Now this becomes the new primary replica!!!\n");
+            //     }
+            // },10000,10000);
             
             System.out.println(ANSI_GREEN + "[" + utilFunc.getTime() + "] " + " Received CheckPoint message: " + checkPointMessage.toString() + ANSI_RESET);
 

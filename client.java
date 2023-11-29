@@ -26,15 +26,15 @@ public class client{
     public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException{
         
         
-        int activeServerNum = 1;
+        int activeServerNum = 2;
         int requestNum = 101;
         int clientId = 0;
 
-        // InetAddress[] hosts = new InetAddress[]{InetAddress.getByName("172.20.10.10"),
-        //                                         InetAddress.getByName("172.20.10.8"),
-        //                                         InetAddress.getByName("172.20.10.11")}; // InetAddress.getLocalHost();
+        InetAddress[] hosts = new InetAddress[]{InetAddress.getByName("172.26.104.42"),
+                                                InetAddress.getByName("172.26.79.28")};
+                                                // InetAddress.getByName("172.20.10.11")}; // InetAddress.getLocalHost();
         
-        InetAddress[] hosts = new InetAddress[]{InetAddress.getByName("192.168.1.3") }; // InetAddress.getLocalHost();
+        // InetAddress[] hosts = new InetAddress[]{InetAddress.getByName("192.168.1.3") }; // InetAddress.getLocalHost();
         
         
         Socket[] sockets = new Socket[activeServerNum];
@@ -79,7 +79,7 @@ public class client{
                     continue; 
                 }
             }
-            for (int i = 0; i < 1; i++){
+            for (int i = 0; i < activeServerNum; i++){
                 try {
                     inputStreams[i] = new ObjectInputStream(sockets[i].getInputStream());
                 } catch (Exception e) {
