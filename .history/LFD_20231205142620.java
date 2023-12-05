@@ -24,10 +24,10 @@ public class LFD {
 
 
     static boolean stopTimer = false;
-    public static int num = 0; 
+    public static int num = 1; 
     private static int portGDF = 9886;
     private static int port = 9876; 
-    static String GDFAddress = "172.26.122.84";
+    static String GDFAddress = "172.26.95.84";
 
     public static void main(String[] args) throws IOException, ClassNotFoundException{
         int heartBeatFreq = 1;

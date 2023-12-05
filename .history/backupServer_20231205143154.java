@@ -156,7 +156,7 @@ public class backupServer {
             @Override
             public void run(){
                 try {
-                    if (s.count.get() > 0 && s.type == "passive"){
+                    if (s.count.get() > 0 || s.type == "active"){
                         sendCheckPointMessageToBackUps(true, s);
                     }
                 } catch (ClassNotFoundException | IOException e) {
@@ -164,9 +164,6 @@ public class backupServer {
                 }
             }
         }, 0, checkpointFreq);
-        if (s.i_am_ready == 0) {
-            s.sendRequestToBackUps();
-        }
     
         // reset the count if not receive the checkpoint
         // Do not need to reset the timer since num = 0 already the leader 
@@ -185,52 +182,6 @@ public class backupServer {
             executorService.execute(clientHandler);
         }
     }
-
-    public static void sendRequestToBackUps() throws IOException, ClassNotFoundException{
-        InetAddress[] backUpServerhosts = new InetAddress[]{
-                                                InetAddress.getByName("172.26.122.84"),
-                                                InetAddress.getByName("172.26.29.61")
-                                            }; 
-
-        int[] backUpServerPorts = new int[]{
-                9876,
-                9876
-                };
-        Socket[] sockets = new Socket[activeBackupServerNum];
-        ObjectOutputStream[] outputStreams = new ObjectOutputStream[activeBackupServerNum]; 
-        try {
- 
-            for (int i = 0; i < activeBackupServerNum; i++){
-
-                 try {
-                    sockets[i] = new Socket();
-                    sockets[i].connect(new InetSocketAddress(backUpServerhosts[i], backUpServerPorts[i]), 500); // Set a timeout of 1000 milliseconds (1 second)
-                    outputStreams[i] = new ObjectOutputStream(sockets[i].getOutputStream());
-                } catch (IOException e) {
-                    // Server is unreachable or timeout occurred, skip it
-                    if (sockets[i] != null) {
-                        sockets[i].close(); // Close the socket if it was opened
-                    }
-                    continue;
-                }
-            }
-
-            for (int i = 0; i < activeBackupServerNum; i++){
-                try {    
-                    if(outputStreams[i] != null){
-                        System.out.println("Requesting the CheckPoint");
-                        outputStreams[i].writeObject("Request CheckPoint");
-                    }
-                } catch (Exception e){
-                    continue; 
-                } 
-                
-            }
-
-        }catch (Exception e) {
-        }
-    }
-
 
 
     public static void sendCheckPointMessageToBackUps(boolean serverReachable, backupServer s) throws IOException, ClassNotFoundException{
@@ -334,12 +285,6 @@ class ClientHandler implements Runnable {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-        } else if (clientMessage.equals("Request CheckPoint")){
-            try {
-                this.server.sendCheckPointMessageToBackUps(true, this.server);
-            } catch (ClassNotFoundException | IOException e) {
-                e.printStackTrace();
-            }
         } else if(clientMessage.startsWith("<checkpoint,") && clientMessage.endsWith(">"))  {
             if (this.server.type == "active" && this.server.i_am_ready == 1){
                 return; 
