@@ -318,9 +318,6 @@ class ClientHandler implements Runnable {
             System.out.println(ANSI_GREEN + "[" + utilFunc.getTime() + "] " + " my_state_S" + (server.num % 3 + 1) + " =" + this.server.getState() + " after processing the CheckPoint message: " + checkPointMessage.toString() + ANSI_RESET);
         
         }else{
-            if (this.server.type == "passive"){
-                return; 
-            }
             //Otherwise the message is from one of the clients and we convert it into 'messageTuple' object
             messageTuple clientMessageTuple = messageTuple.fromString(clientMessage);
             if (this.server.i_am_ready == 0 && this.server.type == "active") {
