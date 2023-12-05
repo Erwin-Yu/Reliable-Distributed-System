@@ -180,6 +180,7 @@ public class backupServer {
             newSocket = s.newServer.accept();
             Runnable clientHandler = new ClientHandler(newSocket, s);
             executorService.execute(clientHandler);
+            // count.incrementAndGet();
         }
     }
 
@@ -299,12 +300,15 @@ class ClientHandler implements Runnable {
             }
             // set back the count to 0: follower
             this.server.count.set(0);
+            // Receive the CheckPoint: Update I am ready
+            this.server.i_am_ready = 1;
             // reset the re-election timer
             this.server.resetTimer.cancel();
             this.server.resetTimer = new Timer();
             this.server.resetTimer.scheduleAtFixedRate(new TimerTask(){
                 public void run(){
                     server.count.set(1);
+                    server.i_am_ready = 1;
                     System.out.println("This is in Client Handler\n");
                     System.out.println("Line 299 Now this becomes the new primary replica!!!\n");
                 }
@@ -320,7 +324,7 @@ class ClientHandler implements Runnable {
         }else{
             //Otherwise the message is from one of the clients and we convert it into 'messageTuple' object
             messageTuple clientMessageTuple = messageTuple.fromString(clientMessage);
-            if (this.server.i_am_ready == 0 && this.server.type == "active") {
+            if (this.server.i_am_ready == 0) {
                 this.server.high_watermark_request_num.add(clientMessageTuple.newStateValue);
                 return;
             }

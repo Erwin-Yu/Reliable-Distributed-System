@@ -20,7 +20,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
@@ -33,7 +32,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
-public class backupServer {
+public class activeServer {
+
     // ANSI Color Codes
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_BLACK = "\u001B[30m";
@@ -56,14 +56,13 @@ public class backupServer {
     public static int activeBackupServerNum = 2;
     public static int checkpointFreq = 500;
     public static int checkpointCount = 0;
-    public static String type; 
     public Timer timer;
     public Timer resetTimer;
     public AtomicInteger count;
     public List<String> high_watermark_request_num;
     // Variables for connections with backup servers
     //Go to line 99 and manually change the host addresses  and ports of backup servers
-    
+
     void addheartBeat(){
         this.heartBeatCount = this.heartBeatCount + 1; 
     }
@@ -72,13 +71,11 @@ public class backupServer {
         return this.heartBeatCount; 
     }
 
-    public backupServer(ServerSocket newServer, String my_state, String type) {
+
+    public activeServer(ServerSocket newServer, String my_state) {
         this.newServer = newServer; 
         this.my_state = my_state;
         this.timer = new Timer();
-        this.resetTimer = new Timer();
-        this.count = new AtomicInteger(0);
-        this.type = type;
         this.high_watermark_request_num = new ArrayList<>();
         // Print initial state of the server
         System.out.println("Initial state of primary server: " + this.my_state);
@@ -100,47 +97,21 @@ public class backupServer {
         this.checkpointCount++;
     }
 
-
-
-
     public static void main(String[] args) throws IOException, ClassNotFoundException{
-
-        System.out.print("Enter an type of the server(active or passive): ");
-        Scanner scanner = new Scanner(System.in);
-        String Input = scanner.nextLine();
         // Check if the file exists
-        Path filePath = Paths.get("servernum.txt");
+        Path filePath = Paths.get("ready.txt");
         if (Files.notExists(filePath)) {
+
             try {
                 // Create the file if it doesn't exist
                 Files.createFile(filePath);
             } catch (IOException e) {
                 e.printStackTrace();
+                // Handle the exception or log it appropriately
                 return; // Exit the program or handle the situation accordingly
             }
         } else {
-            // Restart: I_am_ready is 0 
             i_am_ready = 0;
-        }
-
-        // Needed for milestone 5 : recovery of the primary server and change to be the follower
-        // read the server num from the count file, if it is empty, it is 
-        try (BufferedReader reader = new BufferedReader(new FileReader("servernum.txt"))) {
-            String line = reader.readLine();
-            if (line != null && !line.isEmpty()) {
-                num = Integer.parseInt(line) + 3;
-            } else {
-                // num = 1;
-            }
-        } catch (IOException | NumberFormatException e) {
-            e.printStackTrace();
-        }
-
-        // write into count file 
-         try (BufferedWriter writer = new BufferedWriter(new FileWriter("servernum.txt"))) {
-            writer.write(String.valueOf(num));
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
         int port = 9876;
@@ -148,7 +119,7 @@ public class backupServer {
         newServer = new ServerSocket(port);
         
         ExecutorService executorService = Executors.newFixedThreadPool(10);
-        backupServer s = new backupServer(newServer, "initial state", Input);
+        activeServer s = new activeServer(newServer, "initial state");
         Socket newSocket = null;
 
         // schedule the normal checkpoint 
@@ -156,35 +127,23 @@ public class backupServer {
             @Override
             public void run(){
                 try {
-                    if (s.count.get() > 0 || s.type == "active"){
-                        sendCheckPointMessageToBackUps(true, s);
-                    }
+                    sendCheckPointMessageToBackUps(true, s);
                 } catch (ClassNotFoundException | IOException e) {
            
                 }
             }
         }, 0, checkpointFreq);
-    
-        // reset the count if not receive the checkpoint
-        // Do not need to reset the timer since num = 0 already the leader 
-        if (s.num == 0) {
-            s.resetTimer.scheduleAtFixedRate(new TimerTask(){
-            public void run(){
-                s.count.set(1);
-                System.out.println("Line 165 Now this becomes the new primary replica!!!\n");
-            }
-            },15000,15000);
-        }
 
         while(true){
             newSocket = s.newServer.accept();
             Runnable clientHandler = new ClientHandler(newSocket, s);
             executorService.execute(clientHandler);
+            // count.incrementAndGet();
         }
     }
 
 
-    public static void sendCheckPointMessageToBackUps(boolean serverReachable, backupServer s) throws IOException, ClassNotFoundException{
+    public static void sendCheckPointMessageToBackUps(boolean serverReachable, activeServer s) throws IOException, ClassNotFoundException{
         
         InetAddress[] backUpServerhosts = new InetAddress[]{
                                             InetAddress.getByName("172.26.13.22"),
@@ -255,9 +214,9 @@ class ClientHandler implements Runnable {
     private Socket clientSocket;
     private ObjectInputStream inputStream;
     private ObjectOutputStream outputStream;
-    private backupServer server;
+    private activeServer server;
 
-    public ClientHandler(Socket socket, backupServer s) throws IOException {
+    public ClientHandler(Socket socket, activeServer s) throws IOException {
         this.clientSocket = socket;
         this.server = s; 
         this.inputStream = new ObjectInputStream(socket.getInputStream()); 
@@ -277,38 +236,21 @@ class ClientHandler implements Runnable {
             return;
         }
         if (clientMessage.equals("heartBeat")){
-                try {
-                    System.out.println(ANSI_RED + "[" + utilFunc.getTime() + "] " + this.server.getheartBeat() + " Server " + (server.num % 3 + 1) + "receives heartbeat from LFD" + (server.num % 3 + 1) + ANSI_RESET);
-                    outputStream.writeObject("heartbeat message received");
-                    System.out.println(ANSI_RED + "[" + utilFunc.getTime() + "] " + this.server.getheartBeat() + " Server " + (server.num % 3 + 1) + " sents heartbeat to LFD" + (server.num % 3 + 1) + ANSI_RESET);
-                    this.server.addheartBeat();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            try {
+                System.out.println(ANSI_RED + "[" + utilFunc.getTime() + "] " + this.server.getheartBeat() + " Server " + (server.num % 3 + 1) + "receives heartbeat from LFD" + (server.num % 3 + 1) + ANSI_RESET);
+                outputStream.writeObject("heartbeat message received");
+                System.out.println(ANSI_RED + "[" + utilFunc.getTime() + "] " + this.server.getheartBeat() + " Server " + (server.num % 3 + 1) + " sents heartbeat to LFD" + (server.num % 3 + 1) + ANSI_RESET);
+                this.server.addheartBeat();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         } else if(clientMessage.startsWith("<checkpoint,") && clientMessage.endsWith(">"))  {
-            if (this.server.type == "active" && this.server.i_am_ready == 1){
+            if (this.server.i_am_ready == 1){
                 return; 
-            } else if (this.server.type == "active" && this.server.i_am_ready == 0) {
-                this.server.i_am_ready = 1; 
+            } else {
+                this.server.i_am_ready = 1;
             }
-            // change the current server to be a backup server
             checkPointMessageTuple checkPointMessage = checkPointMessageTuple.fromString(clientMessage);  
-            // if server num is larger than our server's: disregard
-            if (this.server.type == "passive" && checkPointMessage.servernum > this.server.num) {
-                return; 
-            }
-            // set back the count to 0: follower
-            this.server.count.set(0);
-            // reset the re-election timer
-            this.server.resetTimer.cancel();
-            this.server.resetTimer = new Timer();
-            this.server.resetTimer.scheduleAtFixedRate(new TimerTask(){
-                public void run(){
-                    server.count.set(1);
-                    System.out.println("This is in Client Handler\n");
-                    System.out.println("Line 299 Now this becomes the new primary replica!!!\n");
-                }
-            },15000,15000);
             
             System.out.println(ANSI_GREEN + "[" + utilFunc.getTime() + "] " + " Received CheckPoint message: " + checkPointMessage.toString() + ANSI_RESET);
 
@@ -320,7 +262,7 @@ class ClientHandler implements Runnable {
         }else{
             //Otherwise the message is from one of the clients and we convert it into 'messageTuple' object
             messageTuple clientMessageTuple = messageTuple.fromString(clientMessage);
-            if (this.server.i_am_ready == 0 && this.server.type == "active") {
+            if (this.server.i_am_ready == 0) {
                 this.server.high_watermark_request_num.add(clientMessageTuple.newStateValue);
                 return;
             }
@@ -344,4 +286,6 @@ class ClientHandler implements Runnable {
             System.out.println(utilFunc.getTime() + " Sending " + clientMessageTuple.toPrintString());
         }
     }
+    
+    
 }

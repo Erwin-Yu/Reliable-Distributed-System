@@ -56,7 +56,6 @@ public class backupServer {
     public static int activeBackupServerNum = 2;
     public static int checkpointFreq = 500;
     public static int checkpointCount = 0;
-    public static String type; 
     public Timer timer;
     public Timer resetTimer;
     public AtomicInteger count;
@@ -72,13 +71,12 @@ public class backupServer {
         return this.heartBeatCount; 
     }
 
-    public backupServer(ServerSocket newServer, String my_state, String type) {
+    public backupServer(ServerSocket newServer, String my_state) {
         this.newServer = newServer; 
         this.my_state = my_state;
         this.timer = new Timer();
         this.resetTimer = new Timer();
         this.count = new AtomicInteger(0);
-        this.type = type;
         this.high_watermark_request_num = new ArrayList<>();
         // Print initial state of the server
         System.out.println("Initial state of primary server: " + this.my_state);
@@ -105,9 +103,11 @@ public class backupServer {
 
     public static void main(String[] args) throws IOException, ClassNotFoundException{
 
-        System.out.print("Enter an type of the server(active or passive): ");
+        System.out.print("Enter an integer: ");
         Scanner scanner = new Scanner(System.in);
         String Input = scanner.nextLine();
+
+        
         // Check if the file exists
         Path filePath = Paths.get("servernum.txt");
         if (Files.notExists(filePath)) {
@@ -116,10 +116,10 @@ public class backupServer {
                 Files.createFile(filePath);
             } catch (IOException e) {
                 e.printStackTrace();
+                // Handle the exception or log it appropriately
                 return; // Exit the program or handle the situation accordingly
             }
         } else {
-            // Restart: I_am_ready is 0 
             i_am_ready = 0;
         }
 
@@ -148,7 +148,7 @@ public class backupServer {
         newServer = new ServerSocket(port);
         
         ExecutorService executorService = Executors.newFixedThreadPool(10);
-        backupServer s = new backupServer(newServer, "initial state", Input);
+        backupServer s = new backupServer(newServer, "initial state");
         Socket newSocket = null;
 
         // schedule the normal checkpoint 
@@ -156,7 +156,7 @@ public class backupServer {
             @Override
             public void run(){
                 try {
-                    if (s.count.get() > 0 || s.type == "active"){
+                    if (s.count.get() > 0){
                         sendCheckPointMessageToBackUps(true, s);
                     }
                 } catch (ClassNotFoundException | IOException e) {
@@ -180,6 +180,7 @@ public class backupServer {
             newSocket = s.newServer.accept();
             Runnable clientHandler = new ClientHandler(newSocket, s);
             executorService.execute(clientHandler);
+            // count.incrementAndGet();
         }
     }
 
@@ -286,25 +287,25 @@ class ClientHandler implements Runnable {
                     e.printStackTrace();
                 }
         } else if(clientMessage.startsWith("<checkpoint,") && clientMessage.endsWith(">"))  {
-            if (this.server.type == "active" && this.server.i_am_ready == 1){
-                return; 
-            } else if (this.server.type == "active" && this.server.i_am_ready == 0) {
-                this.server.i_am_ready = 1; 
-            }
+
+
             // change the current server to be a backup server
             checkPointMessageTuple checkPointMessage = checkPointMessageTuple.fromString(clientMessage);  
             // if server num is larger than our server's: disregard
-            if (this.server.type == "passive" && checkPointMessage.servernum > this.server.num) {
+            if (checkPointMessage.servernum > this.server.num) {
                 return; 
             }
             // set back the count to 0: follower
             this.server.count.set(0);
+            // Receive the CheckPoint: Update I am ready
+            this.server.i_am_ready = 1;
             // reset the re-election timer
             this.server.resetTimer.cancel();
             this.server.resetTimer = new Timer();
             this.server.resetTimer.scheduleAtFixedRate(new TimerTask(){
                 public void run(){
                     server.count.set(1);
+                    server.i_am_ready = 1;
                     System.out.println("This is in Client Handler\n");
                     System.out.println("Line 299 Now this becomes the new primary replica!!!\n");
                 }
@@ -320,7 +321,7 @@ class ClientHandler implements Runnable {
         }else{
             //Otherwise the message is from one of the clients and we convert it into 'messageTuple' object
             messageTuple clientMessageTuple = messageTuple.fromString(clientMessage);
-            if (this.server.i_am_ready == 0 && this.server.type == "active") {
+            if (this.server.i_am_ready == 0) {
                 this.server.high_watermark_request_num.add(clientMessageTuple.newStateValue);
                 return;
             }
