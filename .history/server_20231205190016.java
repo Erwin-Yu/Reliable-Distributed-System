@@ -343,12 +343,14 @@ class ClientHandler implements Runnable {
                     e.printStackTrace();
                 }
         } else if (clientMessage.equals("Request CheckPoint")){
+            System.out.println("We have received checkpoint request");
             try {
                 this.server.sendCheckPointMessageToBackUps(true, this.server);
             } catch (ClassNotFoundException | IOException e) {
                 e.printStackTrace();
             }
         } else if(clientMessage.startsWith("<checkpoint,") && clientMessage.endsWith(">"))  {
+            System.out.println("i am ready is " + this.server.i_am_ready);
             if (this.server.type.equals("active") && this.server.i_am_ready == 1){
                 return; 
             } else if (this.server.type.equals("active") && this.server.i_am_ready == 0) {
@@ -358,6 +360,7 @@ class ClientHandler implements Runnable {
             checkPointMessageTuple checkPointMessage = checkPointMessageTuple.fromString(clientMessage);  
             // if server num is larger than our server's: disregard
             if (this.server.type.equals("passive") && checkPointMessage.servernum > this.server.num) {
+                System.out.println("return since num ");
                 return; 
             }
 
@@ -367,11 +370,15 @@ class ClientHandler implements Runnable {
             this.server.i_am_ready = 1;
             // reset the re-election timer
             this.server.resetTimer.cancel();
+            System.out.println(" resetTimer.cancel()");
             this.server.resetTimer = new Timer();
+
+            System.out.println("server.count value is: " +  server.count +"\n");
 
             this.server.resetTimer.scheduleAtFixedRate(new TimerTask(){
             public void run(){
                 server.count.set(1);
+                System.out.println("!!!!!!!!!!");
             }
             },4000,4000);
 
@@ -392,6 +399,7 @@ class ClientHandler implements Runnable {
             System.out.println(ANSI_GREEN + "[" + utilFunc.getTime() + "] " + " my_state_S" + (server.num % 3 + 1) + " =" + this.server.getState() + " after processing the CheckPoint message: " + checkPointMessage.toString() + ANSI_RESET);
         
         }else{ 
+            System.out.println("this.server.type is " + this.server.type);
             if (this.server.type.equals("passive") && this.server.count.get() == 0 ){
                 return; 
             }

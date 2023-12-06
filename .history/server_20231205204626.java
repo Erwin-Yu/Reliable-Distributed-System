@@ -367,11 +367,15 @@ class ClientHandler implements Runnable {
             this.server.i_am_ready = 1;
             // reset the re-election timer
             this.server.resetTimer.cancel();
+            System.out.println(" resetTimer.cancel()");
             this.server.resetTimer = new Timer();
+
+            System.out.println("server.count value is: " +  server.count +"\n");
 
             this.server.resetTimer.scheduleAtFixedRate(new TimerTask(){
             public void run(){
                 server.count.set(1);
+                System.out.println("!!!!!!!!!!");
             }
             },4000,4000);
 
@@ -392,6 +396,7 @@ class ClientHandler implements Runnable {
             System.out.println(ANSI_GREEN + "[" + utilFunc.getTime() + "] " + " my_state_S" + (server.num % 3 + 1) + " =" + this.server.getState() + " after processing the CheckPoint message: " + checkPointMessage.toString() + ANSI_RESET);
         
         }else{ 
+            System.out.println("this.server.type is " + this.server.type);
             if (this.server.type.equals("passive") && this.server.count.get() == 0 ){
                 return; 
             }
