@@ -151,37 +151,37 @@ public class server {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         server s = new server(newServer, "initial state", Input);
         Socket newSocket = null;
-
-
         // schedule the normal checkpoint 
         s.timer.scheduleAtFixedRate(new TimerTask(){
             @Override
             public void run(){
                 try {
 
-                    // System.out.println("line 153 s.count.get() value is: " + s.count.get() + "\n");
-                    if (s.count.get() > 0 && s.type == "passive"){
-                        // System.out.println("Line 302 Now this becomes the new primary replica!!!\n");
+                    // System.out.println("line 153 s.count.get() value is: " + s.count.get() + " " + s.type + "\n");
+                    if (s.count.get() > 0 && s.type.equals("passive")){
+                        System.out.println("Line 302 Now this becomes the new primary replica!!!\n");
                         sendCheckPointMessageToBackUps(true, s);
                     }
                 } catch (ClassNotFoundException | IOException e) {
-           
+        
                 }
             }
         }, 0, checkpointFreq);
-        if (s.i_am_ready == 0) {
+
+        if (s.i_am_ready == 0 && s.type.equals("active")) {
+            System.out.println("send request to others");
             s.sendRequestToBackUps();
         }
     
         // reset the count if not receive the checkpoint
         // Do not need to reset the timer since num = 0 already the leader 
-        if (s.num == 0) {
+        if (s.num == 0 && s.type.equals("passive")) {
             s.resetTimer.scheduleAtFixedRate(new TimerTask(){
             public void run(){
                 s.count.set(1);
-                // System.out.println(" Lin 167 Now this becomes the new primary replica!!!\n");
+                System.out.println(" Line 167 Now this becomes the new primary replica!!!\n");
             }
-            },15000,15000);
+            },4000,4000);
         }
 
         while(true){
@@ -194,8 +194,8 @@ public class server {
 
     public static void sendRequestToBackUps() throws IOException, ClassNotFoundException{
         InetAddress[] backUpServerhosts = new InetAddress[]{
-                                                InetAddress.getByName("172.26.122.84"),
-                                                InetAddress.getByName("172.26.29.61")
+                                                InetAddress.getByName("172.26.29.61"),
+                                                InetAddress.getByName("172.26.95.8")
                                             }; 
 
         int[] backUpServerPorts = new int[]{
@@ -228,6 +228,7 @@ public class server {
                         outputStreams[i].writeObject("Request CheckPoint");
                     }
                 } catch (Exception e){
+                    System.out.println(e);
                     continue; 
                 } 
                 
@@ -241,8 +242,8 @@ public class server {
     public static void sendCheckPointMessageToBackUps(boolean serverReachable, server s) throws IOException, ClassNotFoundException{
         
         InetAddress[] backUpServerhosts = new InetAddress[]{
-                                            InetAddress.getByName("172.26.122.84"),
-                                            InetAddress.getByName("172.26.29.61")
+                                            InetAddress.getByName("172.26.29.61"),
+                                            InetAddress.getByName("172.26.95.8")
                                         }; 
 
         int[] backUpServerPorts = new int[]{
@@ -342,21 +343,24 @@ class ClientHandler implements Runnable {
                     e.printStackTrace();
                 }
         } else if (clientMessage.equals("Request CheckPoint")){
+            System.out.println("We have received checkpoint request");
             try {
                 this.server.sendCheckPointMessageToBackUps(true, this.server);
             } catch (ClassNotFoundException | IOException e) {
                 e.printStackTrace();
             }
         } else if(clientMessage.startsWith("<checkpoint,") && clientMessage.endsWith(">"))  {
-            if (this.server.type == "active" && this.server.i_am_ready == 1){
+            System.out.println("i am ready is " + this.server.i_am_ready);
+            if (this.server.type.equals("active") && this.server.i_am_ready == 1){
                 return; 
-            } else if (this.server.type == "active" && this.server.i_am_ready == 0) {
+            } else if (this.server.type.equals("active") && this.server.i_am_ready == 0) {
                 this.server.i_am_ready = 1; 
             }
             // change the current server to be a backup server
             checkPointMessageTuple checkPointMessage = checkPointMessageTuple.fromString(clientMessage);  
             // if server num is larger than our server's: disregard
-            if (this.server.type == "passive" && checkPointMessage.servernum > this.server.num) {
+            if (this.server.type.equals("passive") && checkPointMessage.servernum > this.server.num) {
+                System.out.println("return since num ");
                 return; 
             }
 
@@ -376,7 +380,7 @@ class ClientHandler implements Runnable {
                 server.count.set(1);
                 System.out.println("!!!!!!!!!!");
             }
-            },15000,15000);
+            },4000,4000);
 
             // resetTimer.schedule(new TimerTask(){
             //     public void run(){
@@ -394,10 +398,14 @@ class ClientHandler implements Runnable {
             this.server.changeCheckPointCount(checkPointMessage.getCheckpointCount());
             System.out.println(ANSI_GREEN + "[" + utilFunc.getTime() + "] " + " my_state_S" + (server.num % 3 + 1) + " =" + this.server.getState() + " after processing the CheckPoint message: " + checkPointMessage.toString() + ANSI_RESET);
         
-        }else{
+        }else{ 
+            System.out.println("this.server.type is " + this.server.type);
+            if (this.server.type.equals("passive") && this.server.count.get() == 0 ){
+                return; 
+            }
             //Otherwise the message is from one of the clients and we convert it into 'messageTuple' object
             messageTuple clientMessageTuple = messageTuple.fromString(clientMessage);
-            if (this.server.i_am_ready == 0 && this.server.type == "active") {
+            if (this.server.i_am_ready == 0 && this.server.type.equals("active")) {
                 this.server.high_watermark_request_num.add(clientMessageTuple.newStateValue);
                 return;
             }

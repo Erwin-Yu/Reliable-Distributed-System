@@ -51,7 +51,7 @@ public class backupServer {
 
     // Variables that are needed to change:
     //Checkpoint with backup Servers
-    public static int num = 0;
+    public static int num = 2;
     public static int i_am_ready = 1;
     public static int activeBackupServerNum = 2;
     public static int checkpointFreq = 500;
@@ -156,7 +156,7 @@ public class backupServer {
             @Override
             public void run(){
                 try {
-                    if (s.count.get() > 0 && s.type == "passive"){
+                    if (s.count.get() > 0 && s.type.equals("passive")){
                         sendCheckPointMessageToBackUps(true, s);
                     }
                 } catch (ClassNotFoundException | IOException e) {
@@ -164,19 +164,20 @@ public class backupServer {
                 }
             }
         }, 0, checkpointFreq);
-        if (s.i_am_ready == 0) {
+        if (s.i_am_ready == 0 && s.type.equals("active")) {
+            System.out.println("send request to others");
             s.sendRequestToBackUps();
         }
     
         // reset the count if not receive the checkpoint
         // Do not need to reset the timer since num = 0 already the leader 
-        if (s.num == 0) {
+        if (s.num == 0 && s.type.equals("passive")) {
             s.resetTimer.scheduleAtFixedRate(new TimerTask(){
             public void run(){
                 s.count.set(1);
                 System.out.println("Line 165 Now this becomes the new primary replica!!!\n");
             }
-            },15000,15000);
+            },4000,4000);
         }
 
         while(true){
@@ -188,8 +189,8 @@ public class backupServer {
 
     public static void sendRequestToBackUps() throws IOException, ClassNotFoundException{
         InetAddress[] backUpServerhosts = new InetAddress[]{
-                                                InetAddress.getByName("172.26.122.84"),
-                                                InetAddress.getByName("172.26.29.61")
+            InetAddress.getByName("172.26.26.131"),
+            InetAddress.getByName("172.26.29.61")
                                             }; 
 
         int[] backUpServerPorts = new int[]{
@@ -232,11 +233,10 @@ public class backupServer {
     }
 
 
-
     public static void sendCheckPointMessageToBackUps(boolean serverReachable, backupServer s) throws IOException, ClassNotFoundException{
         
         InetAddress[] backUpServerhosts = new InetAddress[]{
-                                        InetAddress.getByName("172.26.122.84"),
+                                        InetAddress.getByName("172.26.26.131"),
                                         InetAddress.getByName("172.26.29.61")
                                         }; 
 
@@ -325,6 +325,8 @@ class ClientHandler implements Runnable {
             e.printStackTrace();
             return;
         }
+        System.out.print("incoming message is : " + clientMessage);
+
         if (clientMessage.equals("heartBeat")){
                 try {
                     System.out.println(ANSI_RED + "[" + utilFunc.getTime() + "] " + this.server.getheartBeat() + " Server " + (server.num % 3 + 1) + "receives heartbeat from LFD" + (server.num % 3 + 1) + ANSI_RESET);
@@ -335,21 +337,25 @@ class ClientHandler implements Runnable {
                     e.printStackTrace();
                 }
         } else if (clientMessage.equals("Request CheckPoint")){
+            System.out.println("We have received checkpoint request");
             try {
                 this.server.sendCheckPointMessageToBackUps(true, this.server);
             } catch (ClassNotFoundException | IOException e) {
                 e.printStackTrace();
             }
         } else if(clientMessage.startsWith("<checkpoint,") && clientMessage.endsWith(">"))  {
-            if (this.server.type == "active" && this.server.i_am_ready == 1){
+            if (this.server.type.equals("active") && this.server.i_am_ready == 1){
                 return; 
-            } else if (this.server.type == "active" && this.server.i_am_ready == 0) {
+            } else if (this.server.type.equals("active") && this.server.i_am_ready == 0) {
                 this.server.i_am_ready = 1; 
             }
+
             // change the current server to be a backup server
             checkPointMessageTuple checkPointMessage = checkPointMessageTuple.fromString(clientMessage);  
             // if server num is larger than our server's: disregard
-            if (this.server.type == "passive" && checkPointMessage.servernum > this.server.num) {
+
+            System.out.println("358 checkPointMessage is " +  checkPointMessage + " , this.server.num is " + this.server.num);
+            if (this.server.type.equals("passive") && checkPointMessage.servernum > this.server.num) {
                 return; 
             }
             // set back the count to 0: follower
@@ -363,7 +369,7 @@ class ClientHandler implements Runnable {
                     System.out.println("This is in Client Handler\n");
                     System.out.println("Line 299 Now this becomes the new primary replica!!!\n");
                 }
-            },15000,15000);
+            },4000,4000);
             
             System.out.println(ANSI_GREEN + "[" + utilFunc.getTime() + "] " + " Received CheckPoint message: " + checkPointMessage.toString() + ANSI_RESET);
 
@@ -373,12 +379,12 @@ class ClientHandler implements Runnable {
             System.out.println(ANSI_GREEN + "[" + utilFunc.getTime() + "] " + " my_state_S" + (server.num % 3 + 1) + " =" + this.server.getState() + " after processing the CheckPoint message: " + checkPointMessage.toString() + ANSI_RESET);
         
         }else{
-            if (this.server.type == "passive"){
+            if (this.server.type.equals("passive") && this.server.count.get() == 0 ){
                 return; 
             }
             //Otherwise the message is from one of the clients and we convert it into 'messageTuple' object
             messageTuple clientMessageTuple = messageTuple.fromString(clientMessage);
-            if (this.server.i_am_ready == 0 && this.server.type == "active") {
+            if (this.server.i_am_ready == 0 && this.server.type.equals("active")) {
                 this.server.high_watermark_request_num.add(clientMessageTuple.newStateValue);
                 return;
             }
