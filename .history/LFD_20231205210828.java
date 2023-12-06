@@ -25,10 +25,10 @@ public class LFD {
 
 
     static boolean stopTimer = false;
-    public static int num = 0; 
+    public static int num = 1; 
     private static int portGDF = 9886;
     private static int port = 9876; 
-    static String GDFAddress = "172.26.122.84";
+    static String GDFAddress = "172.26.37.124";
 
     public static void main(String[] args) throws IOException, ClassNotFoundException{
         int heartBeatFreq = 1;
@@ -43,7 +43,7 @@ public class LFD {
         String timeInterval = scanner.nextLine(); 
         int timeIntervalInt = Integer.parseInt(timeInterval);
 
-        startHeartbeatListener(9896); // Listen to HB from GFD
+        startHeartbeatListener(port); // Listen to HB from GFD
 
         timer = new Timer();
 
@@ -145,7 +145,6 @@ public class LFD {
                     } catch (IOException | ClassNotFoundException e) {
                         System.out.println("Error handling connection: " + e.getMessage());
                     }
-                    System.out.println("fin");
                 }
             } catch (IOException e) {
                 System.out.println("Error starting server socket: " + e.getMessage());

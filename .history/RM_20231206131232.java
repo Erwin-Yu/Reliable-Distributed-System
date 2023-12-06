@@ -27,10 +27,10 @@ public class RM {
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         int port= 10000;
-        // System.out.print("Enter an type of the RM(manual or auto): ");
-        // Scanner scanner = new Scanner(System.in);
-        // String Input = scanner.nextLine();
-        // type = Input;
+        System.out.print("Enter an type of the RM(manual or auto): ");
+        Scanner scanner = new Scanner(System.in);
+        String Input = scanner.nextLine();
+        type = Input;
         // Create threads for each server socket
         Thread thread = createSocketThread(port);
         thread.start();

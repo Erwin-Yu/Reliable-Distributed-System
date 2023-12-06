@@ -6,7 +6,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 
 public class RM {
@@ -23,14 +22,10 @@ public class RM {
     private static int memberCount = 0;
     public static int portGFD = 9886;
     private static List<String> membership = new ArrayList<>();
-    public static String type; 
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         int port= 10000;
-        // System.out.print("Enter an type of the RM(manual or auto): ");
-        // Scanner scanner = new Scanner(System.in);
-        // String Input = scanner.nextLine();
-        // type = Input;
+        
         // Create threads for each server socket
         Thread thread = createSocketThread(port);
         thread.start();

@@ -25,7 +25,7 @@ public class LFD {
 
 
     static boolean stopTimer = false;
-    public static int num = 0; 
+    public static int num = 1; 
     private static int portGDF = 9886;
     private static int port = 9876; 
     static String GDFAddress = "172.26.122.84";

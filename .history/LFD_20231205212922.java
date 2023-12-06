@@ -25,7 +25,7 @@ public class LFD {
 
 
     static boolean stopTimer = false;
-    public static int num = 0; 
+    public static int num = 1; 
     private static int portGDF = 9886;
     private static int port = 9876; 
     static String GDFAddress = "172.26.122.84";
@@ -145,7 +145,6 @@ public class LFD {
                     } catch (IOException | ClassNotFoundException e) {
                         System.out.println("Error handling connection: " + e.getMessage());
                     }
-                    System.out.println("fin");
                 }
             } catch (IOException e) {
                 System.out.println("Error starting server socket: " + e.getMessage());
